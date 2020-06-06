@@ -163,12 +163,12 @@ namespace AGW.Main
             dtMain.Namespace = smainSql1;
 
 
-            frmTemplate tmpMain = new frmTemplate();
-            CompontentDataGrid grid = tmpMain.InitializeNewTabPage(SourceTxt, SourceFormName, dtMain);
+            ComponentPanel panle = new ComponentPanel(true);
+            ComponentDataGrid grid = panle.InitializeNewTabPage(SourceTxt, SourceFormName, dtMain);
 
-            tmpMain.Dock = DockStyle.Top;
-            MainTab.SelectedTab.Controls.Add(tmpMain);
-            tmpMain.BringToFront();
+            panle.Dock = DockStyle.Top;
+            MainTab.SelectedTab.Controls.Add(panle);
+            panle.BringToFront();
 
             string srelationSql = $@"select * from T_FormRelationships with(nolock) where fmainname = '{SourceFormName}'";
             DataTable dtRelationShip = DBHelper.GetDataTable(srelationSql);
@@ -176,7 +176,10 @@ namespace AGW.Main
             //无从属关系
             if (dtRelationShip == null || dtRelationShip.Rows.Count == 0)
             {
-                tmpMain.Dock = DockStyle.Fill;
+                panle.Dock = DockStyle.Fill;
+                EventHelper eventHelperOnly = new EventHelper();
+
+                eventHelperOnly.BindingCellClickEvent(grid);
                 return;
             }
 
@@ -189,30 +192,30 @@ namespace AGW.Main
 
 
             #region 设置高度
-            int ictrlCount = MainTab.SelectedTab.Controls.OfType<frmTemplate>().Count();
+            int ictrlCount = MainTab.SelectedTab.Controls.OfType<ComponentPanel>().Count();
             int ipageHeigh = MainTab.SelectedTab.Height;
             int iResult = ipageHeigh / ictrlCount;
 
             foreach (Control ctrl in MainTab.SelectedTab.Controls)
             {
-                if (!(ctrl is frmTemplate)) continue;
+                if (!(ctrl is ComponentPanel)) continue;
 
-                frmTemplate frm = ctrl as frmTemplate;
+                ComponentPanel frm = ctrl as ComponentPanel;
                 frm.Height = iResult;
             }
             #endregion
 
             #region 点击事件绑定
 
-            EventHelper eventHelper = new EventHelper(grid);
+            EventHelper eventHelper = new EventHelper();
 
-            eventHelper.BindingEvent();
+            eventHelper.BindingCellClickEvent(grid);
 
             #endregion
         }
 
 
-        private void RecursiveForm(CompontentDataGrid parentGrid, DataTable dtRelation, string mainName)
+        private void RecursiveForm(ComponentDataGrid parentGrid, DataTable dtRelation, string mainName)
         {
             DataRow[] drs = dtRelation.Select($"fFatherName ='{mainName}'");
 
@@ -221,7 +224,7 @@ namespace AGW.Main
                 ? true
                 : false;
 
-            frmTemplate tmpMain = new frmTemplate();
+            ComponentPanel tmpMain = new ComponentPanel();
 
 
             var rows = parentGrid.SelectedRows;
@@ -249,7 +252,7 @@ namespace AGW.Main
                     dtMain.TableName = drProgramInfo["fTable"] + "";
                     dtMain.Namespace = smainSql1;
 
-                    CompontentDataGrid childGrid = tmpMain.InitializeNewTabPage(drProgramInfo["fcnname"] + "", drProgramInfo["fname"] + "", dtMain);
+                    ComponentDataGrid childGrid = tmpMain.InitializeNewTabPage(drProgramInfo["fcnname"] + "", drProgramInfo["fname"] + "", dtMain);
 
                     childGrid.ParentDataGrid = parentGrid;
                     childGrid.PrimaryKey = Keys.ChildKeys;
@@ -275,7 +278,7 @@ namespace AGW.Main
                 dtMain.TableName = drProgramInfo["fTable"] + "";
                 dtMain.Namespace = smainSql1;
 
-                CompontentDataGrid childGrid = tmpMain.InitializeNewTabPage(drProgramInfo["fcnname"] + "", drProgramInfo["fname"] + "", dtMain);
+                ComponentDataGrid childGrid = tmpMain.InitializeNewTabPage(drProgramInfo["fcnname"] + "", drProgramInfo["fname"] + "", dtMain);
                 MainTab.SelectedTab.Controls.Add(tmpMain);
                 tmpMain.BringToFront();
 

@@ -16,7 +16,7 @@ namespace AGW.Base.Components
         /// 组件绑定数据容器
         /// </summary>
         /// <param name="grid">数据容器</param>
-        void BindingDataGrid(CompontentDataGrid grid);
+        void BindingDataGrid(ComponentDataGrid grid);
 
         /// <summary>
         /// 组件绑定当前页面
@@ -34,6 +34,6 @@ namespace AGW.Base.Components
         /// 获取主键绑定的数据容器
         /// </summary>
         /// <returns></returns>
-        CompontentDataGrid GetBindingDataGrid();
+        ComponentDataGrid GetBindingDataGrid();
     }
 }

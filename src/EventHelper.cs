@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -11,91 +12,222 @@ namespace AGW.Base
 {
     public class EventHelper
     {
-        public EventHelper(CompontentDataGrid dataGrid)
+
+
+        public void BindingCellClickEvent(ComponentDataGrid dataGrid)
         {
-            _mdataGrid = dataGrid;
+            dataGrid.CellClick += CommonCellClick;
+            CommonCellClick(dataGrid, null);
         }
 
-        private CompontentDataGrid _mdataGrid = null;
-
-
-        public void BindingEvent()
-        {
-            _mdataGrid.CellClick += CommonCellClick;
-            CommonCellClick(_mdataGrid, null);
-        }
-
+        /// <summary>
+        /// 容器单元格点击事件
+        /// </summary>
+        /// <param name="sender">容器</param>
+        /// <param name="e">事件参数(不适用)</param>
         private void CommonCellClick(object sender, DataGridViewCellEventArgs e)
         {
-            CompontentDataGrid dataGrid = sender as CompontentDataGrid;
+            ComponentDataGrid dataGrid = sender as ComponentDataGrid;
 
-            List<CompontentDataGrid> children = dataGrid.GetChildrenDataGrid();
+            if (e == null)
+            {
+                ToolbarAddEvent(dataGrid.Toolbar);
+            }
+
+            if (dataGrid == null) throw new ArgumentNullException("当前容器为空");
+
+            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenDataGrid();
 
 
             var rows = dataGrid.SelectedRows;
             if (rows == null || rows.Count == 0)
             {
-                foreach (CompontentDataGrid item in children)
+                foreach (ComponentDataGrid grid in childrenGrid)
                 {
-                    DataTable dt = (DataTable)item.DataSource;
+                    DataTable dt = grid.DataSource as DataTable;
+
+                    if (dt == null) continue;
+
                     dt.Rows.Clear();
-                    item.DataSource = dt;
-                    ClearRows(item);
+                    grid.DataSource = dt;
+                    
+                    ClearRows(grid);
                 }
                 return;
             }
+
             var row = rows[0];
 
-            foreach (CompontentDataGrid item in children)
+            foreach (ComponentDataGrid grid in childrenGrid)
             {
-                string[] childKeys = item.PrimaryKey;
-                string[] parentKeys = item.ParentPrimaryKey;
+                string[] childKeys = grid.PrimaryKey;
+                string[] parentKeys = grid.ParentPrimaryKey;
                 string swherestring = GetWhereString(row, parentKeys, childKeys);
 
-                int iindex = (item.DataSource as DataTable).Namespace.IndexOf("where", StringComparison.OrdinalIgnoreCase);
+                grid.ParentKeyValues = new string[parentKeys.Length];
+                for (int i = 0; i < parentKeys.Length; i++)
+                {
+                    grid.ParentKeyValues[i] = row.Cells[parentKeys[i]].Value + "";
+                }
+
+                int iindex = (grid.DataSource as DataTable).Namespace.IndexOf("where", StringComparison.OrdinalIgnoreCase);
                 string sql = string.Empty;
                 if (iindex < 0)
                 {
-                    sql = (item.DataSource as DataTable).Namespace + " where " + swherestring;
+                    sql = (grid.DataSource as DataTable).Namespace + " where " + swherestring;
                 }
                 else
                 {
-                    sql = (item.DataSource as DataTable).Namespace.Substring(0, iindex).TrimEnd() + " where " + swherestring;
+                    sql = (grid.DataSource as DataTable).Namespace.Substring(0, iindex).TrimEnd() + " where " + swherestring;
                 }
 
-                string tablename = (item.DataSource as DataTable).TableName;
+                string tablename = (grid.DataSource as DataTable).TableName;
 
                 DataTable dt = DBHelper.GetDataTable(sql);
                 dt.Namespace = sql;
                 dt.TableName = tablename;
-                item.DataSource = dt;
-                item.CellClick += CommonCellClick;
-                CommonCellClick(item, e);
+                grid.DataSource = dt;
+                grid.CellClick += CommonCellClick;
+                CommonCellClick(grid, e);
             }
 
         }
 
-        private string GetWhereString(DataGridViewRow drMain, string[] arrMain, string[] arrChild)
+        /// <summary>
+        /// 获取Where条件
+        /// </summary>
+        /// <param name="drParent">父容器点击的行数据</param>
+        /// <param name="arrParent">父容器的主键</param>
+        /// <param name="arrChild">子容器的主键</param>
+        /// <returns>where sql</returns>
+        private string GetWhereString(DataGridViewRow drParent, string[] arrParent, string[] arrChild)
         {
             List<string> lisWhere = new List<string>();
-            for (int i = 0; i < arrMain.Length; i++)
+            for (int i = 0; i < arrParent.Length; i++)
             {
-                lisWhere.Add(arrChild[i] + "=" + "'" + drMain.Cells[arrMain[i]].Value + "" + "'");
+                lisWhere.Add(arrChild[i] + "=" + "'" + drParent.Cells[arrParent[i]].Value + "" + "'");
             }
 
             return string.Join(" and ", lisWhere);
         }
 
-        private void ClearRows(CompontentDataGrid dataGrid)
+        /// <summary>
+        /// 清楚容器行数据+
+        /// </summary>
+        /// <param name="dataGrid"></param>
+        private void ClearRows(ComponentDataGrid dataGrid)
         {
-            List<CompontentDataGrid> children = dataGrid.GetChildrenDataGrid();
+            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenDataGrid();
 
-            foreach (CompontentDataGrid item in children)
+            foreach (ComponentDataGrid grid in childrenGrid)
             {
-                DataTable dt = (DataTable)item.DataSource;
+                DataTable dt = grid.DataSource as DataTable;
+
+                if (dt == null) continue;
+
                 dt.Rows.Clear();
-                item.DataSource = dt;
-                ClearRows(item);
+                grid.DataSource = dt;
+
+                ClearRows(grid);
+            }
+        }
+
+
+
+        private void ToolbarAddEvent(ComponentToolbar toolbar)
+        {
+            foreach (ToolStripButton button in toolbar.Items)
+            {
+                string name = button.Name;
+                switch (name)
+                {
+                    case "add":
+                        button.Click += AddClick;
+                        break;
+                    case "refresh":
+                        button.Click += RefreshClick;
+                        break;
+                    case "delete":
+                        button.Click += DeleteClick;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void DeleteClick(object sender, EventArgs e)
+        {
+            ToolStripButton button = sender as ToolStripButton;
+            ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
+            var grid = tool.DataGrid;
+            var rows = grid.SelectedRows;
+            if (rows == null)
+            {
+                MessageBox.Show("当前没有可以删除的数据!");
+                return;
+            }
+            DialogResult dr = MessageBox.Show("是否删除选中行", "title", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                List<DataGridViewRow> lisRow = new List<DataGridViewRow>();
+                foreach (DataGridViewRow row in rows)
+                {
+                    lisRow.Add(row);
+                }
+                List<string> lisStr = new List<string>(lisRow.Count);
+                lisRow.ForEach(new Action<DataGridViewRow>(x =>
+                {
+                    lisStr.Add($@"delete from {(grid.DataSource as DataTable).TableName} where fid ={(int)x.Cells["fid"].Value}");
+                    grid.Rows.Remove(x);
+                }));
+                DBHelper.RunSql(lisStr, CommandType.Text, null);
+            }
+        }
+
+        private void AddClick(object sender, EventArgs e)
+        {
+            ToolStripButton button = sender as ToolStripButton;
+            ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
+            var grid = tool.DataGrid;
+
+            frmModule form = new frmModule(grid);
+            form.atRefresh = RefreshClick;
+            form.Initialize();
+            form.ShowDialog();
+
+        }
+
+
+        /// <summary>
+        /// 刷新
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void RefreshClick(object sender, EventArgs e)
+        {
+            ToolStripButton button = sender as ToolStripButton;
+            ComponentToolbar tool = null;
+            if (button == null)
+            {
+                tool = sender as ComponentToolbar;
+            }
+            else
+            {
+                tool = button.GetCurrentParent() as ComponentToolbar;
+            }
+
+            string sql = (tool.DataGrid.DataSource as DataTable).Namespace;
+            string tablename = (tool.DataGrid.DataSource as DataTable).TableName;
+            DataTable dt = DBHelper.GetDataTable(sql);
+            dt.Namespace = sql;
+            dt.TableName = tablename;
+            tool.DataGrid.DataSource = dt;
+
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                tool.DataGrid.Rows[0].Cells[0].Selected = true;
+                CommonCellClick(tool.DataGrid, new DataGridViewCellEventArgs(0, 0));
             }
         }
     }

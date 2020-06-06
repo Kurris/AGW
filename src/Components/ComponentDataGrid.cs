@@ -11,18 +11,24 @@ namespace AGW.Base.Components
     /// <summary>
     /// 数据容器
     /// </summary>
-    public class CompontentDataGrid : DataGridView
+    public class ComponentDataGrid : DataGridView
     {
 
         /// <summary>
         /// 上一级容器
         /// </summary>
-        public CompontentDataGrid ParentDataGrid { get; set; }
+        public ComponentDataGrid ParentDataGrid { get; set; }
 
         /// <summary>
         /// 下一级容器
         /// </summary>
-        private List<CompontentDataGrid> _mchildrenDataGrid = new List<CompontentDataGrid>();
+        private List<ComponentDataGrid> _mchildrenDataGrid = new List<ComponentDataGrid>();
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ComponentToolbar Toolbar { get; private set; }
 
         /// <summary>
         /// 下一级容器数量
@@ -40,10 +46,15 @@ namespace AGW.Base.Components
         public string[] ParentPrimaryKey { get; set; }
 
         /// <summary>
+        /// 上一级容器主键值
+        /// </summary>
+        public string[] ParentKeyValues { get; set; }
+
+        /// <summary>
         /// 添加下一级容器
         /// </summary>
         /// <param name="dataGrid">容器</param>
-        public void AddChildDataGrid(CompontentDataGrid dataGrid)
+        public void AddChildDataGrid(ComponentDataGrid dataGrid)
         {
             bool bExists = _mchildrenDataGrid.Any(x => x.Name.Equals(dataGrid.Name, StringComparison.OrdinalIgnoreCase));
             if (bExists)
@@ -68,7 +79,16 @@ namespace AGW.Base.Components
         /// 获取下一级容i去
         /// </summary>
         /// <returns>容器</returns>
-        public List<CompontentDataGrid> GetChildrenDataGrid() => _mchildrenDataGrid;
+        public List<ComponentDataGrid> GetChildrenDataGrid() => _mchildrenDataGrid;
+
+        /// <summary>
+        /// 组件绑定工具栏
+        /// </summary>
+        /// <param name="toolbar">工具栏</param>
+        public void BindingToolbar(ComponentToolbar toolbar)
+        {
+            Toolbar = toolbar;
+        }
 
     }
 }

@@ -10,7 +10,7 @@ namespace AGW.Base.Components
     /// <summary>
     /// 结构树
     /// </summary>
-    internal class ComponentTree : TreeView, IComponentLink
+    public class ComponentTree : TreeView, IComponentLink
     {
         /// <summary>
         /// 默认初始化一个Text:"全部";Name:"All"节点
@@ -24,10 +24,10 @@ namespace AGW.Base.Components
             });
         }
 
-        internal CompontentDataGrid DataGrid { get; private set; }
-        internal TabPage TabPage { get; private set; }
+        public ComponentDataGrid DataGrid { get; private set; }
+        public TabPage TabPage { get; private set; }
 
-        public void BindingDataGrid(CompontentDataGrid grid)
+        public void BindingDataGrid(ComponentDataGrid grid)
         {
             DataGrid = grid;
         }
@@ -37,7 +37,7 @@ namespace AGW.Base.Components
             TabPage = page;
         }
 
-        public CompontentDataGrid GetBindingDataGrid() => DataGrid;
+        public ComponentDataGrid GetBindingDataGrid() => DataGrid;
 
         public TabPage GetBindingTabPage() => TabPage;
     }

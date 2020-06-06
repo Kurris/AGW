@@ -61,11 +61,17 @@ where a.fInterFaceName = '{name}'");
 
         private static void AddButton(ComponentToolbar toolstrip, DataRow dr)
         {
+
             var button = new ToolStripButton()
             {
                 Name = dr["fbtnname"] + "",
                 Text = dr["fbtntext"] + ""
             };
+            if ("custom".Equals(dr["fbtnname"] + "", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrEmpty(dr["fCustomName"] + ""))
+            {
+                button.Text = dr["fCustomName"] + "";
+            }
             toolstrip.Items.Add(button);
 
             if (!string.IsNullOrEmpty(dr["fbtnimage"] + ""))
@@ -76,38 +82,11 @@ where a.fInterFaceName = '{name}'");
                     button.Image = image;
                 }
             }
-            AddEvent(button);
-        }
-        private static void AddEvent(ToolStripButton button)
-        {
-            string name = button.Name;
-            switch (name)
-            {
-                case "add":
-                    break;
-                case "refresh":
-                    button.Click += RefreshClick;
-                    break;
-                default:
-                    break;
-            }
         }
 
-        private static void RefreshClick(object sender, EventArgs e)
+        internal static ComponentDataGrid NewDataGrid(DataTable gridData)
         {
-            ToolStripButton button = sender as ToolStripButton;
-            ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
-            string sql = (tool.DataGrid.DataSource as DataTable).Namespace;
-            string tablename = (tool.DataGrid.DataSource as DataTable).TableName;
-            DataTable dt = DBHelper.GetDataTable(sql);
-            dt.Namespace = sql;
-            dt.TableName = tablename;
-            tool.DataGrid.DataSource = dt;
-        }
-
-        internal static CompontentDataGrid NewDataGrid(DataTable gridData)
-        {
-            var grid = new CompontentDataGrid()
+            var grid = new ComponentDataGrid()
             {
                 DataSource = gridData,
                 BackgroundColor = Color.White
@@ -119,7 +98,7 @@ where a.fInterFaceName = '{name}'");
             menu.ItemClicked += (s, e) =>
             {
                 ContextMenuStrip toolstrip = e.ClickedItem.GetCurrentParent() as ContextMenuStrip;
-                CompontentDataGrid getDgv = toolstrip.SourceControl as CompontentDataGrid;
+                ComponentDataGrid getDgv = toolstrip.SourceControl as ComponentDataGrid;
                 menu.Hide();
 
                 if (e.ClickedItem.Text.Equals("查看当前SQL"))
@@ -140,8 +119,9 @@ where a.fInterFaceName = '{name}'");
         /// 初始化CompontentDataGrid样式
         /// </summary>
         /// <param name="MainDgv"></param>
-        public static void InitStyle(CompontentDataGrid dgv)
+        public static void InitStyle(ComponentDataGrid dgv)
         {
+            //dgv.BorderStyle = BorderStyle.None;
             dgv.ReadOnly = true;
             dgv.BackgroundColor = Color.White;
             dgv.RowHeadersVisible = false;
@@ -154,7 +134,7 @@ where a.fInterFaceName = '{name}'");
             }
 
             dgv.AllowUserToAddRows = false;
-            dgv.MultiSelect = false;
+            //dgv.MultiSelect = false;
 
             dgv.CellBorderStyle = DataGridViewCellBorderStyle.None;
             dgv.AdvancedColumnHeadersBorderStyle.Top = DataGridViewAdvancedCellBorderStyle.None;

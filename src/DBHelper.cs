@@ -162,11 +162,13 @@ namespace AGW.Base
 
                         command.CommandText = sql;
 
-                        List<DbParameter> paras = parameters[i];
-
-                        if (paras != null && paras.Count > 0)
+                        if (parameters != null && parameters.Count > 0)
                         {
-                            command.Parameters.AddRange(paras.ToArray());
+                            List<DbParameter> paras = parameters[i];
+                            if (paras != null && paras.Count > 0)
+                            {
+                                command.Parameters.AddRange(paras.ToArray());
+                            }
                         }
                         int iResult = command.ExecuteNonQuery();
                         if (iResult < 0)
