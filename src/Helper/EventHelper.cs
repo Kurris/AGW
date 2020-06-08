@@ -1,14 +1,16 @@
 ﻿using AGW.Base.Components;
+using AGW.Base.Helper;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Net.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace AGW.Base
+namespace AGW.Base.Helper
 {
     public class EventHelper
     {
@@ -50,7 +52,7 @@ namespace AGW.Base
 
                     dt.Rows.Clear();
                     grid.DataSource = dt;
-                    
+
                     ClearRows(grid);
                 }
                 return;
@@ -70,15 +72,15 @@ namespace AGW.Base
                     grid.ParentKeyValues[i] = row.Cells[parentKeys[i]].Value + "";
                 }
 
-                int iindex = (grid.DataSource as DataTable).Namespace.IndexOf("where", StringComparison.OrdinalIgnoreCase);
+                int iindex = (grid.DataSource as DataTable).Namespace.LastIndexOf("where", StringComparison.OrdinalIgnoreCase);
                 string sql = string.Empty;
                 if (iindex < 0)
                 {
-                    sql = (grid.DataSource as DataTable).Namespace + " where " + swherestring;
+                    sql = (grid.DataSource as DataTable).Namespace + "\r\n where " + swherestring;
                 }
                 else
                 {
-                    sql = (grid.DataSource as DataTable).Namespace.Substring(0, iindex).TrimEnd() + " where " + swherestring;
+                    sql = (grid.DataSource as DataTable).Namespace.Substring(0, iindex).TrimEnd() + "\r\n where " + swherestring;
                 }
 
                 string tablename = (grid.DataSource as DataTable).TableName;
@@ -105,7 +107,7 @@ namespace AGW.Base
             List<string> lisWhere = new List<string>();
             for (int i = 0; i < arrParent.Length; i++)
             {
-                lisWhere.Add(arrChild[i] + "=" + "'" + drParent.Cells[arrParent[i]].Value + "" + "'");
+                lisWhere.Add("tfinal." + arrChild[i] + "=" + "'" + drParent.Cells[arrParent[i]].Value + "" + "'");
             }
 
             return string.Join(" and ", lisWhere);
@@ -150,7 +152,25 @@ namespace AGW.Base
                     case "delete":
                         button.Click += DeleteClick;
                         break;
+
                     default:
+                        string sassamblyFullName = button.Name;
+                        try
+                        {
+                            string[] arrFullName = sassamblyFullName.Split(',');
+                            string sfielName = Path.Combine(Application.StartupPath, "Locallib", arrFullName[0] + ".dll");
+
+                            if (!File.Exists(sfielName)) throw new FileNotFoundException(sfielName);
+
+                            AssamblyHelper assamblyHelper = new AssamblyHelper(sfielName);
+                            assamblyHelper.LoadAssembly(sassamblyFullName);
+
+                        }
+                        catch (Exception)
+                        {
+                            button.Visible = false;
+                        }
+
                         break;
                 }
             }

@@ -5,7 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-namespace AGW.Base
+namespace AGW.Base.Helper
 {
     public sealed class DBHelper
     {

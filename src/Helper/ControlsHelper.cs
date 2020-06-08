@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace AGW.Base
+namespace AGW.Base.Helper
 {
     /// <summary>
     /// 控件帮助类
@@ -71,6 +71,7 @@ where a.fInterFaceName = '{name}'");
                 && !string.IsNullOrEmpty(dr["fCustomName"] + ""))
             {
                 button.Text = dr["fCustomName"] + "";
+                button.Name = dr["fAssamblyName"] + "";
             }
             toolstrip.Items.Add(button);
 

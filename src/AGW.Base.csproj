@@ -72,9 +72,10 @@
     <Compile Include="Components\frmModule.Designer.cs">
       <DependentUpon>frmModule.cs</DependentUpon>
     </Compile>
-    <Compile Include="ControlsHelper.cs" />
-    <Compile Include="DBHelper.cs" />
-    <Compile Include="EventHelper.cs" />
+    <Compile Include="Helper\AssamblyHelper.cs" />
+    <Compile Include="Helper\ControlsHelper.cs" />
+    <Compile Include="Helper\DBHelper.cs" />
+    <Compile Include="Helper\EventHelper.cs" />
     <Compile Include="FrmBase.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +112,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ScriptModule\MSSQLProcTemplate.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Abstract\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

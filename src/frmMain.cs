@@ -1,5 +1,6 @@
 ﻿using AGW.Base;
 using AGW.Base.Components;
+using AGW.Base.Helper;
 using DevExpress.XtraEditors;
 using DevExpress.XtraNavBar;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -164,7 +166,7 @@ namespace AGW.Main
 
 
             ComponentPanel panle = new ComponentPanel(true);
-            ComponentDataGrid grid = panle.InitializeNewTabPage(SourceTxt, SourceFormName, dtMain);
+            ComponentDataGrid grid = panle.InitializeNewTabPage(drProgramInfo["fCNName"] + "", SourceFormName, dtMain);
 
             panle.Dock = DockStyle.Top;
             MainTab.SelectedTab.Controls.Add(panle);
@@ -239,21 +241,19 @@ namespace AGW.Main
 
                 foreach (DataRow dr in drs)
                 {
-
-                    var Keys = GetPrimary(dr);
-
                     string smainSql = $@"select * from t_program where fname ='{dr["fchildname"] + "" }'";
                     DataTable dtProgramInfo = DBHelper.GetDataTable(smainSql);
                     DataRow drProgramInfo = dtProgramInfo.Rows[0];
 
-                    string smainSql1 = drProgramInfo["fSql"].ToString().TrimEnd() + " where "
-                        + GetWhereString(row, Keys.ParentKeys, Keys.ChildKeys);
+                    string smainSql1 = drProgramInfo["fSql"].ToString().TrimEnd();
+
                     DataTable dtMain = DBHelper.GetDataTable(smainSql1);
                     dtMain.TableName = drProgramInfo["fTable"] + "";
-                    dtMain.Namespace = smainSql1;
+                    dtMain.Namespace = $"select * from (\r\n{smainSql1}\r\n) tfinal \r\nwhere 1=1";
 
                     ComponentDataGrid childGrid = tmpMain.InitializeNewTabPage(drProgramInfo["fcnname"] + "", drProgramInfo["fname"] + "", dtMain);
 
+                    var Keys = GetPrimary(dr);
                     childGrid.ParentDataGrid = parentGrid;
                     childGrid.PrimaryKey = Keys.ChildKeys;
                     childGrid.ParentPrimaryKey = Keys.ParentKeys;
@@ -276,7 +276,7 @@ namespace AGW.Main
                 string smainSql1 = drProgramInfo["fSql"] + "";
                 DataTable dtMain = DBHelper.GetDataTable(smainSql1);
                 dtMain.TableName = drProgramInfo["fTable"] + "";
-                dtMain.Namespace = smainSql1;
+                dtMain.Namespace = $"select * from (\r\n{smainSql1}\r\n) tfinal \r\nwhere 1=1";
 
                 ComponentDataGrid childGrid = tmpMain.InitializeNewTabPage(drProgramInfo["fcnname"] + "", drProgramInfo["fname"] + "", dtMain);
                 MainTab.SelectedTab.Controls.Add(tmpMain);
@@ -337,17 +337,6 @@ namespace AGW.Main
             }
 
             return (arrParentKeys, arrChildKeys);
-        }
-
-        private string GetWhereString(DataGridViewRow drMain, string[] arrMain, string[] arrChild)
-        {
-            List<string> lisWhere = new List<string>();
-            for (int i = 0; i < arrMain.Length; i++)
-            {
-                lisWhere.Add(arrChild[i] + "=" + "'" + drMain.Cells[arrMain[i]].Value + "" + "'");
-            }
-
-            return string.Join(" and ", lisWhere);
         }
     }
 }
