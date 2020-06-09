@@ -84,36 +84,43 @@ end
                 DBHelper.RunSql(sql);
 
                 atRefresh?.Invoke(_mgrid.Toolbar, null);
-                //                if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
-                //                {
-                //                    var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
-                //                    var lcfind = lc.Where(x => x.Controls["fsql"] != null).FirstOrDefault();
-                //                    Control ctrl = lcfind.Controls["fsql"];
-                //                    DataTable dtColumnsInfo = DBHelper.GetDataTable(ctrl.Text);
-                //                    List<string> listStr = new List<string>(20);
-                //                    foreach (DataRow dr in dtColumnsInfo.Rows)
-                //                    {
-                //                        string sqlCol = $@"
-                //INSERT INTO [dbo].[T_ProgramInfo]
-                //           ([fProgramName]
-                //           ,[fField]
-                //           ,[fDefaultValue]
-                //           ,[fVisiable]
-                //           ,[fEnable]
-                //           ,[fLength]
-                //           ,[fEmpty])
-                //     VALUES
-                //           (<fProgramName, varchar(50),>
-                //           ,<fField, varchar(20),>
-                //           ,<fDefaultValue, varchar(50),>
-                //           ,<fVisiable, bit,>
-                //           ,<fEnable, bit,>
-                //           ,<fLength, varchar(50),>
-                //           ,<fEmpty, bit,>)"
-                //;
-                //                    }
+                if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
+                {
+                    var sqlctrl = lc.Where(x => x.Controls["fsql"] != null).FirstOrDefault();
+                    Control sqlA = sqlctrl.Controls["fsql"];
+                    var infoReader = DBHelper.GetDataReader(sqlA.Text);
 
-                //                }
+                    DataTable infoschema = infoReader.GetSchemaTable();
+                    List<string> listStr = new List<string>(20);
+
+                    var name = lc.Where(x => x.Controls["fName"] != null).FirstOrDefault();
+                    Control ctrname = name.Controls["fName"];
+
+                    foreach (DataRow dr in infoschema.Rows)
+                    {
+                        string sqlCol = $@"
+                INSERT INTO [dbo].[T_ProgramInfo]
+                           ([fProgramName]
+                           ,[fField]
+                           ,[fDefaultValue]
+                           ,[fVisiable]
+                           ,[fEnable]
+                           ,[fLength]
+                           ,[fEmpty])
+                     VALUES
+                           ('{ctrname.Text}'
+                           ,'{dr["ColumnName"]}'
+                           ,''
+                           ,1
+                           ,1
+                           ,{Convert.ToInt32(dr["ColumnSize"])}
+                           ,{Convert.ToInt32(dr["AllowDBNull"])})";
+
+                        listStr.Add(sqlCol);
+                    }
+                    DBHelper.RunSql(listStr, CommandType.Text, null);
+
+                }
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
@@ -129,7 +136,7 @@ end
 
                     if (bEdit)
                     {
-                            lisStr.Add($"{dr["ColumnName"] + ""}='{ctrl.Text}'");
+                        lisStr.Add($"{dr["ColumnName"] + ""}='{ctrl.Text}'");
                     }
                     else
                     {
@@ -142,7 +149,6 @@ end
                             lisStr.Add(dr["ColumnName"] + "");
                         }
                     }
-
                 }
                 return string.Join(",", lisStr);
             }
