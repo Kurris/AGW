@@ -152,28 +152,53 @@ namespace AGW.Base.Helper
                     case "delete":
                         button.Click += DeleteClick;
                         break;
-
-                    default:
-                        string sassamblyFullName = button.Name;
-                        try
-                        {
-                            string[] arrFullName = sassamblyFullName.Split(',');
-                            string sfielName = Path.Combine(Application.StartupPath, "Locallib", arrFullName[0] + ".dll");
-
-                            if (!File.Exists(sfielName)) throw new FileNotFoundException(sfielName);
-
-                            AssamblyHelper assamblyHelper = new AssamblyHelper(sfielName);
-                            assamblyHelper.LoadAssembly(sassamblyFullName);
-
-                        }
-                        catch (Exception)
-                        {
-                            button.Visible = false;
-                        }
-
+                    case "edit":
+                        button.Click += EditClick;
+                        break;
+                    case "custom":
+                        button.Click += CustomClick;
                         break;
                 }
             }
+        }
+
+        private void CustomClick(object sender, EventArgs e)
+        {
+            ToolStripButton button = sender as ToolStripButton;
+
+            string sassamblyFullName = button.Name;
+            try
+            {
+                string[] arrFullName = sassamblyFullName.Split(',');
+                string sfielName = Path.Combine(Application.StartupPath, "Locallib", arrFullName[0] + ".dll");
+
+                if (!File.Exists(sfielName)) throw new FileNotFoundException(sfielName);
+
+                AssamblyHelper assamblyHelper = new AssamblyHelper(sfielName);
+                assamblyHelper.LoadAssembly(sassamblyFullName);
+
+            }
+            catch (Exception)
+            {
+                button.Visible = false;
+            }
+        }
+
+        private void EditClick(object sender, EventArgs e)
+        {
+            ToolStripButton button = sender as ToolStripButton;
+            ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
+            var grid = tool.DataGrid;
+            var rows = grid.SelectedRows;
+            if (rows == null)
+            {
+                MessageBox.Show("当前没有可以编辑的数据!");
+                return;
+            }
+            frmModule form = new frmModule(grid, true);
+            form.atRefresh = RefreshClick;
+            form.Initialize();
+            form.ShowDialog();
         }
 
         private void DeleteClick(object sender, EventArgs e)
@@ -215,7 +240,6 @@ namespace AGW.Base.Helper
             form.atRefresh = RefreshClick;
             form.Initialize();
             form.ShowDialog();
-
         }
 
 

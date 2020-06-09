@@ -84,7 +84,7 @@ namespace AGW.Main
                 Container.Controls.Add(treeview);
 
                 //取导航栏同组的数据
-                string sNo = dr["fNo"] + "";
+                string sNo = dr["fGroup"] + "";
                 DataRow[] drs = dt.Select(string.Format("fGroup = '{0}' and fPid={1}", sNo, 0));
 
                 foreach (DataRow drr in drs)
@@ -99,7 +99,7 @@ namespace AGW.Main
 
                 void FindChildNode(DataTable dtAll, TreeNode fnode, int ifid)
                 {
-                    DataRow[] drsNode = dtAll.Select(string.Format("fPid = {0}", ifid));
+                    DataRow[] drsNode = dtAll.Select(string.Format("fPid = {0} and fgroup='{1}'", ifid, sNo));
                     foreach (DataRow drS in drsNode)
                     {
                         if (Convert.ToInt32(drS["fPid"]) == ifid)

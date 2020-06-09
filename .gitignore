@@ -6,3 +6,7 @@
 /bin/Debug
 /.vs/AGW/v16
 /.vs/AGW.Base/v16
+/src/packages/System.ValueTuple.4.5.0
+/src/obj/Debug
+/src/bin/Debug
+/src/.vs/AGW/v16

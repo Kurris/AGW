@@ -65,7 +65,8 @@ where a.fInterFaceName = '{name}'");
             var button = new ToolStripButton()
             {
                 Name = dr["fbtnname"] + "",
-                Text = dr["fbtntext"] + ""
+                Text = dr["fbtntext"] + "",
+                DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
             };
             if ("custom".Equals(dr["fbtnname"] + "", StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrEmpty(dr["fCustomName"] + ""))
@@ -77,9 +78,9 @@ where a.fInterFaceName = '{name}'");
 
             if (!string.IsNullOrEmpty(dr["fbtnimage"] + ""))
             {
-                using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(dr["fbtnimage"] + "")))
+                if (File.Exists(dr["fbtnimage"] + ""))
                 {
-                    Image image = Image.FromStream(ms);
+                    Image image = Image.FromFile(dr["fbtnimage"] + "");
                     button.Image = image;
                 }
             }

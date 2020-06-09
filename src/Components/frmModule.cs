@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace AGW.Base.Components
 {
     public partial class frmModule : Form
     {
-        public frmModule(ComponentDataGrid grid)
+        public frmModule(ComponentDataGrid grid, bool Edit = false)
         {
             InitializeComponent();
 
@@ -22,6 +23,8 @@ namespace AGW.Base.Components
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
+            _mbEdit = Edit;
+            _mdataRow = grid.SelectedRows[0];
 
             flowLayout.FlowDirection = FlowDirection.TopDown;
             _mgrid = grid;
@@ -30,6 +33,10 @@ namespace AGW.Base.Components
             this.btnCancel.Click += BtnCancel_Click;
         }
 
+        private bool _mbEdit = false;
+
+        private DataGridViewRow _mdataRow = null;
+
         public Action<object, EventArgs> atRefresh = null;
 
         private void BtnOK_Click(object sender, EventArgs e)
@@ -37,66 +44,105 @@ namespace AGW.Base.Components
             DataTable dt = _mgrid.DataSource as DataTable;
             string sTableName = dt.TableName;
 
-            var reader = DBHelper.GetDataReader($"select * from {sTableName} with(nolock)");
+            var reader = DBHelper.GetDataReader($"select top(1) * from {sTableName} with(nolock)");
             if (reader.Read())
             {
                 DataTable Schema = reader.GetSchemaTable();
+                string sFid = Schema.Rows[0].Field<string>("ColumnName");
+
+                var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
+                var lcfind = lc.Where(x => x.Controls[sFid] != null).FirstOrDefault();
+                Control ctrl = lcfind.Controls[sFid];
+
                 Schema.Rows.Remove(Schema.Rows[0]);
 
-                string sql = $@"insert into {sTableName}({GetFields(Schema)}) values({GetFields(Schema, true)})";
+                string sql = string.Empty;
+
+                if (_mbEdit)
+                {
+                    int iFid = Convert.ToInt32(ctrl.Text);
+                    sql = $@"
+if exists(select 1 from {sTableName} where {sFid}={iFid})
+begin
+update {sTableName}
+set {GetFields(Schema, true, true)}
+where {sFid}={iFid}
+end
+
+else 
+begin
+ insert into { sTableName} ({ GetFields(Schema)}) values({ GetFields(Schema, true)})
+end
+
+";
+                }
+                else
+                {
+                    sql = $@"insert into {sTableName}({GetFields(Schema)}) values({GetFields(Schema, true)})";
+                }
+
                 DBHelper.RunSql(sql);
 
                 atRefresh?.Invoke(_mgrid.Toolbar, null);
-                if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
-                {
-                    var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
-                    var lcfind = lc.Where(x => x.Controls["fsql"] != null).FirstOrDefault();
-                    Control ctrl = lcfind.Controls["fsql"];
-                    DataTable dtColumnsInfo = DBHelper.GetDataTable(ctrl.Text);
-                    List<string> listStr = new List<string>(20);
-                    foreach (DataRow dr in dtColumnsInfo.Rows)
-                    {
-                        string sqlCol = $@"
-INSERT INTO [dbo].[T_ProgramInfo]
-           ([fProgramName]
-           ,[fField]
-           ,[fDefaultValue]
-           ,[fVisiable]
-           ,[fEnable]
-           ,[fLength]
-           ,[fEmpty])
-     VALUES
-           (<fProgramName, varchar(50),>
-           ,<fField, varchar(20),>
-           ,<fDefaultValue, varchar(50),>
-           ,<fVisiable, bit,>
-           ,<fEnable, bit,>
-           ,<fLength, varchar(50),>
-           ,<fEmpty, bit,>)"
-;
-                    }
+                //                if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
+                //                {
+                //                    var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
+                //                    var lcfind = lc.Where(x => x.Controls["fsql"] != null).FirstOrDefault();
+                //                    Control ctrl = lcfind.Controls["fsql"];
+                //                    DataTable dtColumnsInfo = DBHelper.GetDataTable(ctrl.Text);
+                //                    List<string> listStr = new List<string>(20);
+                //                    foreach (DataRow dr in dtColumnsInfo.Rows)
+                //                    {
+                //                        string sqlCol = $@"
+                //INSERT INTO [dbo].[T_ProgramInfo]
+                //           ([fProgramName]
+                //           ,[fField]
+                //           ,[fDefaultValue]
+                //           ,[fVisiable]
+                //           ,[fEnable]
+                //           ,[fLength]
+                //           ,[fEmpty])
+                //     VALUES
+                //           (<fProgramName, varchar(50),>
+                //           ,<fField, varchar(20),>
+                //           ,<fDefaultValue, varchar(50),>
+                //           ,<fVisiable, bit,>
+                //           ,<fEnable, bit,>
+                //           ,<fLength, varchar(50),>
+                //           ,<fEmpty, bit,>)"
+                //;
+                //                    }
 
-                }
+                //                }
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
 
-            string GetFields(DataTable collection, bool bGetValue = false)
+            string GetFields(DataTable collection, bool bGetValue = false, bool bEdit = false)
             {
                 List<string> lisStr = new List<string>(10);
+                var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
                 foreach (DataRow dr in collection.Rows)
                 {
-                    if (bGetValue)
+                    var lcfind = lc.Where(x => x.Controls[dr["ColumnName"] + ""] != null).FirstOrDefault();
+                    Control ctrl = lcfind.Controls[dr["ColumnName"] + ""];
+
+                    if (bEdit)
                     {
-                        var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
-                        var lcfind = lc.Where(x => x.Controls[dr["ColumnName"] + ""] != null).FirstOrDefault();
-                        Control ctrl = lcfind.Controls[dr["ColumnName"] + ""];
-                        lisStr.Add("'" + ctrl.Text + "'");
+                            lisStr.Add($"{dr["ColumnName"] + ""}='{ctrl.Text}'");
                     }
                     else
                     {
-                        lisStr.Add(dr["ColumnName"] + "");
+                        if (bGetValue)
+                        {
+                            lisStr.Add("'" + ctrl.Text + "'");
+                        }
+                        else
+                        {
+                            lisStr.Add(dr["ColumnName"] + "");
+                        }
                     }
+
                 }
                 return string.Join(",", lisStr);
             }
@@ -130,13 +176,20 @@ INSERT INTO [dbo].[T_ProgramInfo]
 
                     Control ctrl = new TextBox() { Name = col.HeaderText, Dock = DockStyle.Right };
 
-                    if (ChildKeys != null)
+                    if (_mbEdit)
                     {
-                        for (int i = 0; i < ChildKeys.Length; i++)
+                        ctrl.Text = _mdataRow.Cells[ctrl.Name].Value + "";
+                    }
+                    else
+                    {
+                        if (ChildKeys != null)
                         {
-                            if (ChildKeys[i].Equals(ctrl.Name, StringComparison.OrdinalIgnoreCase))
+                            for (int i = 0; i < ChildKeys.Length; i++)
                             {
-                                ctrl.Text = KeysValues[i];
+                                if (ChildKeys[i].Equals(ctrl.Name, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    ctrl.Text = KeysValues[i];
+                                }
                             }
                         }
                     }
