@@ -1,13 +1,9 @@
 ﻿using AGW.Base.Helper;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AGW.Base.Components
@@ -83,7 +79,6 @@ end
 
                 DBHelper.RunSql(sql);
 
-                atRefresh?.Invoke(_mgrid.Toolbar, null);
                 if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
                 {
                     var sqlctrl = lc.Where(x => x.Controls["fsql"] != null).FirstOrDefault();
@@ -121,6 +116,9 @@ end
                     DBHelper.RunSql(listStr, CommandType.Text, null);
 
                 }
+
+                atRefresh?.Invoke(_mgrid.Toolbar, null);
+
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }

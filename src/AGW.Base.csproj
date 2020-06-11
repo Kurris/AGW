@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PluginsClass\ComponentToolButtonPlugin.cs" />
     <Compile Include="Components\ComponentLableAndControl.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -113,8 +114,6 @@
   <ItemGroup>
     <Content Include="ScriptModule\MSSQLProcTemplate.sql" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Abstract\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using System.Windows.Forms;
 
 namespace AGW.Base.Components
@@ -10,6 +6,7 @@ namespace AGW.Base.Components
     /// <summary>
     /// 结构树
     /// </summary>
+    [ToolboxItem(false)]
     public class ComponentTree : TreeView, IComponentLink
     {
         /// <summary>

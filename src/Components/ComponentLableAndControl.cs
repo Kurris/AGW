@@ -1,7 +1,9 @@
-﻿using System.Windows.Forms;
+﻿using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace AGW.Base.Components
 {
+    [ToolboxItem(false)]
     public class ComponentLableAndControl : Panel
     {
         public ComponentLableAndControl()

@@ -1,10 +1,7 @@
 ﻿using AGW.Base.Helper;
-using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AGW.Base.Components
@@ -12,6 +9,7 @@ namespace AGW.Base.Components
     /// <summary>
     /// 基础面板
     /// </summary>
+    [ToolboxItem(false)]
     public class ComponentPanel : Panel
     {
         public ComponentPanel() : this(false)

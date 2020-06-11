@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AGW.Base.Components
@@ -11,6 +9,7 @@ namespace AGW.Base.Components
     /// <summary>
     /// 数据容器
     /// </summary>
+    [ToolboxItem(false)]
     public class ComponentDataGrid : DataGridView
     {
 
