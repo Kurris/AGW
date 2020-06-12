@@ -1,14 +1,21 @@
 ﻿using AGW.Base.Components;
 using System;
-using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
-using System.Drawing.Text;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+
+/* function: ControlsHelper
+ * Date:2020 06 12
+ * Creator:  ligy  
+ *
+ * Data                                     Modifier                                    Details
+ * 
+ * 
+ *
+ *************************************************************************************************************************/
 
 namespace AGW.Base.Helper
 {
@@ -86,13 +93,12 @@ where a.fInterFaceName = '{name}'");
             }
         }
 
-        internal static ComponentDataGrid NewDataGrid(DataTable gridData)
+        internal static ComponentDataGrid NewDataGrid(DataTable gridData, DataTable gridColInfo)
         {
-            var grid = new ComponentDataGrid()
-            {
-                DataSource = gridData,
-                BackgroundColor = Color.White
-            };
+            var grid = new ComponentDataGrid();
+            grid.AutoGenerateColumns = false;
+            grid.DataSource = gridData;
+
 
             var menu = new ContextMenuStrip();
             menu.Items.Add("查看当前SQL");
@@ -114,6 +120,9 @@ where a.fInterFaceName = '{name}'");
             };
 
             grid.ContextMenuStrip = menu;
+
+            InitStyle(grid, gridColInfo);
+
             return grid;
         }
 
@@ -121,28 +130,62 @@ where a.fInterFaceName = '{name}'");
         /// 初始化CompontentDataGrid样式
         /// </summary>
         /// <param name="MainDgv"></param>
-        public static void InitStyle(ComponentDataGrid dgv)
+        public static void InitStyle(ComponentDataGrid dgv, DataTable ColInfo)
         {
-            //dgv.BorderStyle = BorderStyle.None;
             dgv.ReadOnly = true;
             dgv.BackgroundColor = Color.White;
             dgv.RowHeadersVisible = false;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            for (int i = 0; i < dgv.ColumnCount; i++)
-            {
-                dgv.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            }
+
 
             dgv.AllowUserToAddRows = false;
-            //dgv.MultiSelect = false;
 
             dgv.CellBorderStyle = DataGridViewCellBorderStyle.None;
             dgv.AdvancedColumnHeadersBorderStyle.Top = DataGridViewAdvancedCellBorderStyle.None;
             dgv.AdvancedColumnHeadersBorderStyle.Bottom = DataGridViewAdvancedCellBorderStyle.None;
             dgv.AdvancedColumnHeadersBorderStyle.Left = DataGridViewAdvancedCellBorderStyle.None;
             dgv.AdvancedColumnHeadersBorderStyle.Right = DataGridViewAdvancedCellBorderStyle.None;
+
+            DataTable dt = dgv.DataSource as DataTable;
+            foreach (DataColumn dc in dt.Columns)
+            {
+                Type type = dc.DataType;
+                DataGridViewColumn col = null;
+                if (type.Equals(typeof(bool)))
+                {
+                    col = new DataGridViewCheckBoxColumn();
+                    col.CellTemplate = new DataGridViewCheckBoxCell();
+                }
+                else
+                {
+                    col = new DataGridViewTextBoxColumn();
+                    col.CellTemplate = new DataGridViewTextBoxCell();
+                }
+
+                col.Name = dc.ColumnName;
+                col.Visible = GetValue(ColInfo,"fvisiable" ,col.Name);
+                col.Tag = GetValue(ColInfo, "freadonly", col.Name);
+                col.DataPropertyName = dc.ColumnName;
+                col.HeaderText = col.HeaderText = GlobalInvariant.GetLanguageByKey(dc.ColumnName);
+                dgv.Columns.Add(col);
+            }
+
+            for (int i = 0; i < dgv.ColumnCount; i++)
+            {
+                dgv.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            }
+
+            bool GetValue(DataTable Data, string MatchColumn,string ColumnName)
+            {
+                var row = Data.Select($"fcolname='{ColumnName}'").FirstOrDefault();
+                if (row != null)
+                {
+                    return (bool)row[MatchColumn];
+                }
+                return false;
+            }
         }
     }
 }

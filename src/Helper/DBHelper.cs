@@ -5,6 +5,16 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
+/* function: DBHelper
+ * Date:2020 06 12
+ * Creator:  ligy  
+ *
+ * Data                                     Modifier                                    Details
+ * 
+ * 
+ *
+ *************************************************************************************************************************/
+
 namespace AGW.Base.Helper
 {
     public sealed class DBHelper
@@ -170,11 +180,7 @@ namespace AGW.Base.Helper
                                 command.Parameters.AddRange(paras.ToArray());
                             }
                         }
-                        int iResult = command.ExecuteNonQuery();
-                        if (iResult < 0)
-                        {
-                            throw new Exception("effected rows < 0");
-                        }
+                        command.ExecuteNonQuery();
                         command.Parameters.Clear();
                     }
 

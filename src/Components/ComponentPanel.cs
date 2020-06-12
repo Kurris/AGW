@@ -12,14 +12,10 @@ namespace AGW.Base.Components
     [ToolboxItem(false)]
     public class ComponentPanel : Panel
     {
-        public ComponentPanel() : this(false)
-        {
 
-        }
-
-        public ComponentPanel(bool bGeneralTree)
+        public ComponentPanel(bool Main = false)
         {
-            _mbGeneralTree = bGeneralTree;
+            _mbMain = Main;
 
             TabCtrl = new TabControl();
             TabCtrl.Dock = DockStyle.Fill;
@@ -31,7 +27,7 @@ namespace AGW.Base.Components
 
         public TabControl TabCtrl { get; private set; }
 
-        private bool _mbGeneralTree = false;
+        private bool _mbMain = false;
 
         /// <summary>
         /// 创建
@@ -55,33 +51,47 @@ namespace AGW.Base.Components
             page.Controls.Add(toolstrip);
             toolstrip.BringToFront();
 
-
-            if (_mbGeneralTree)
+            DataTable dtColInfo = DBHelper.GetDataTable($@"select * from T_InterfaceColums where fInterfacename='{name}'");
+            bool bgenTree = false;
+            if (_mbMain)
             {
-                Tree = new ComponentTree();
-                Tree.Dock = DockStyle.Left;
-                page.Controls.Add(Tree);
-                Tree.BringToFront();
+                if (dtColInfo != null && dtColInfo.Rows.Count > 0)
+                {
+                    bgenTree = dtColInfo.Select("fInterFaceColIsTree = 1").Count() > 0
+                        ? true
+                        : false;
+
+                    if (bgenTree)
+                    {
+                        Tree = new ComponentTree();
+                        Tree.Dock = DockStyle.Left;
+                        page.Controls.Add(Tree);
+                        Tree.BringToFront();
+                    }
+                }
             }
 
-            ComponentDataGrid dgv = ControlsHelper.NewDataGrid(gridData);
+
+
+            ComponentDataGrid dgv = ControlsHelper.NewDataGrid(gridData, dtColInfo);
             dgv.Name = name;
             page.Controls.Add(dgv);
             dgv.Dock = DockStyle.Fill;
             dgv.BringToFront();
-            ControlsHelper.InitStyle(dgv);
 
             dgv.BindingToolbar(toolstrip);
+            dgv.BindingTabPage(page);
 
             toolstrip.BindingDataGrid(dgv);
             toolstrip.BindingTabPage(page);
 
 
-            if (_mbGeneralTree)
+            if (bgenTree)
             {
                 Tree.BindingDataGrid(dgv);
                 Tree.BindingTabPage(page);
-                _mbGeneralTree = false;
+
+                _mbMain = false;
             }
 
             return dgv;

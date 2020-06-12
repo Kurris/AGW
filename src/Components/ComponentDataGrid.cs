@@ -24,8 +24,10 @@ namespace AGW.Base.Components
         private List<ComponentDataGrid> _mchildrenDataGrid = new List<ComponentDataGrid>();
 
 
+        public TabPage TabPage { get; private set; }
+
         /// <summary>
-        /// 
+        /// 工具栏
         /// </summary>
         public ComponentToolbar Toolbar { get; private set; }
 
@@ -88,6 +90,9 @@ namespace AGW.Base.Components
         {
             Toolbar = toolbar;
         }
-
+        public void BindingTabPage(TabPage tabPage)
+        {
+            TabPage = tabPage;
+        }
     }
 }

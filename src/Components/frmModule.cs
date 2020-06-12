@@ -20,13 +20,25 @@ namespace AGW.Base.Components
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
             _mbEdit = Edit;
-            _mdataRow = grid.SelectedRows[0];
+
+            _mdataRow = grid.SelectedRows.Count > 0
+                ? grid.SelectedRows[0]
+                : null;
 
             flowLayout.FlowDirection = FlowDirection.TopDown;
             _mgrid = grid;
 
             this.btnOK.Click += BtnOK_Click;
             this.btnCancel.Click += BtnCancel_Click;
+
+            if (_mbEdit)
+            {
+                this.Text = grid.TabPage.Text + "---编辑";
+            }
+            else
+            {
+                this.Text = grid.TabPage.Text + "---新增";
+            }
         }
 
         private bool _mbEdit = false;
@@ -35,112 +47,82 @@ namespace AGW.Base.Components
 
         public Action<object, EventArgs> atRefresh = null;
 
-        private void BtnOK_Click(object sender, EventArgs e)
+        void BtnOK_Click(object sender, EventArgs e)
         {
             DataTable dt = _mgrid.DataSource as DataTable;
             string sTableName = dt.TableName;
 
             var reader = DBHelper.GetDataReader($"select top(1) * from {sTableName} with(nolock)");
-            if (reader.Read())
+
+            DataTable Schema = reader.GetSchemaTable();
+            string sFid = Schema.Rows[0].Field<string>("ColumnName");
+
+            var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
+            var lcfind = lc.Where(x => x.Controls[sFid] != null).FirstOrDefault();
+            Control ctrl = lcfind.Controls[sFid];
+
+            Schema.Rows.Remove(Schema.Rows[0]);
+
+            string sql = string.Empty;
+
+            if (_mbEdit)
             {
-                DataTable Schema = reader.GetSchemaTable();
-                string sFid = Schema.Rows[0].Field<string>("ColumnName");
-
-                var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
-                var lcfind = lc.Where(x => x.Controls[sFid] != null).FirstOrDefault();
-                Control ctrl = lcfind.Controls[sFid];
-
-                Schema.Rows.Remove(Schema.Rows[0]);
-
-                string sql = string.Empty;
-
-                if (_mbEdit)
-                {
-                    int iFid = Convert.ToInt32(ctrl.Text);
-                    sql = $@"
-if exists(select 1 from {sTableName} where {sFid}={iFid})
+                int iFid = Convert.ToInt32(ctrl.Text);
+                sql = $@"
+if  not exists(select 1 from {sTableName} where {sFid}={iFid})
+begin
+ insert into { sTableName} ({ GetFields(Schema)}) values({ GetFields(Schema, true)})
+end
+else
 begin
 update {sTableName}
 set {GetFields(Schema, true, true)}
 where {sFid}={iFid}
 end
-
-else 
-begin
- insert into { sTableName} ({ GetFields(Schema)}) values({ GetFields(Schema, true)})
-end
-
 ";
-                }
-                else
-                {
-                    sql = $@"insert into {sTableName}({GetFields(Schema)}) values({GetFields(Schema, true)})";
-                }
-
-                DBHelper.RunSql(sql);
-
-                if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
-                {
-                    var sqlctrl = lc.Where(x => x.Controls["fsql"] != null).FirstOrDefault();
-                    Control sqlA = sqlctrl.Controls["fsql"];
-                    var infoReader = DBHelper.GetDataReader(sqlA.Text);
-
-                    DataTable infoschema = infoReader.GetSchemaTable();
-                    List<string> listStr = new List<string>(20);
-
-                    var name = lc.Where(x => x.Controls["fName"] != null).FirstOrDefault();
-                    Control ctrname = name.Controls["fName"];
-
-                    foreach (DataRow dr in infoschema.Rows)
-                    {
-                        string sqlCol = $@"
-                INSERT INTO [dbo].[T_ProgramInfo]
-                           ([fProgramName]
-                           ,[fField]
-                           ,[fDefaultValue]
-                           ,[fVisiable]
-                           ,[fEnable]
-                           ,[fLength]
-                           ,[fEmpty])
-                     VALUES
-                           ('{ctrname.Text}'
-                           ,'{dr["ColumnName"]}'
-                           ,''
-                           ,1
-                           ,1
-                           ,{Convert.ToInt32(dr["ColumnSize"])}
-                           ,{Convert.ToInt32(dr["AllowDBNull"])})";
-
-                        listStr.Add(sqlCol);
-                    }
-                    DBHelper.RunSql(listStr, CommandType.Text, null);
-
-                }
-
-                atRefresh?.Invoke(_mgrid.Toolbar, null);
-
-                this.DialogResult = DialogResult.OK;
-                this.Close();
             }
+            else
+            {
+                sql = $@"insert into {sTableName}({GetFields(Schema)}) values({GetFields(Schema, true)})";
+            }
+
+            DBHelper.RunSql(sql);
+
+            if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
+            {
+                SpecialHandleDataSourceProgram();
+            }
+
+            atRefresh?.Invoke(_mgrid.Toolbar, null);
+
+            this.DialogResult = DialogResult.OK;
+            this.Close();
 
             string GetFields(DataTable collection, bool bGetValue = false, bool bEdit = false)
             {
                 List<string> lisStr = new List<string>(10);
-                var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
+                var lc1 = flowLayout.Controls.OfType<ComponentLableAndControl>();
                 foreach (DataRow dr in collection.Rows)
                 {
-                    var lcfind = lc.Where(x => x.Controls[dr["ColumnName"] + ""] != null).FirstOrDefault();
-                    Control ctrl = lcfind.Controls[dr["ColumnName"] + ""];
+                    var lcfind1 = lc1.Where(x => x.Controls[dr["ColumnName"] + ""] != null).FirstOrDefault();
+                    Control ctrl1 = lcfind1.Controls[dr["ColumnName"] + ""];
 
                     if (bEdit)
                     {
-                        lisStr.Add($"{dr["ColumnName"] + ""}='{ctrl.Text}'");
+                        if (ctrl1 is CheckBox)
+                        {
+                            lisStr.Add($"{dr["ColumnName"] + ""}='{((ctrl1 as CheckBox).Checked ? 1 : 0)}'");
+                        }
+                        else
+                        {
+                            lisStr.Add($"{dr["ColumnName"] + ""}='{ctrl1.Text}'");
+                        }
                     }
                     else
                     {
                         if (bGetValue)
                         {
-                            lisStr.Add("'" + ctrl.Text + "'");
+                            lisStr.Add("'" + ctrl1.Text + "'");
                         }
                         else
                         {
@@ -150,6 +132,51 @@ end
                 }
                 return string.Join(",", lisStr);
             }
+        }
+
+        void SpecialHandleDataSourceProgram()
+        {
+            ComponentLableAndControl nameOffSql = flowLayout.Controls
+                .OfType<ComponentLableAndControl>()
+                .Where(x => x.Controls["fsql"] != null)
+                .FirstOrDefault();
+
+            Control ctrlSql = nameOffSql.Controls["fsql"];
+
+            ComponentLableAndControl nameOffName = flowLayout.Controls
+                .OfType<ComponentLableAndControl>()
+                .Where(x => x.Controls["fName"] != null)
+                .FirstOrDefault();
+
+            Control ctrlName = nameOffName.Controls["fName"];
+
+            DataTable dtSchema = DBHelper.GetDataReader(ctrlSql.Text)?.GetSchemaTable();
+
+            List<string> listStr = new List<string>(20);
+            listStr.Add($@"
+if not exists (select 1 from t_interface where finterfacename='{ctrlName.Text}')
+begin
+insert into t_interface(finterfacename) values('{ctrlName.Text}')
+end
+
+");
+
+
+            foreach (DataRow dr in dtSchema.Rows)
+            {
+                string sSql = $@"
+if not  exists (select 1 from T_InterfaceColums a where a.fInterfacename='{ctrlName.Text}' and a.fColName='{dr["ColumnName"] + ""}')
+begin
+INSERT INTO T_InterfaceColums (fColName,fInterFaceColIsTree,fInterfacename,fEmpty,fDefaultValue,fKey,fColType,fDataSource,fDataSourceCols,fDataMapCols,fNum,fVisiable)
+     VALUES('{dr["ColumnName"] + ""}',0,'{ctrlName.Text}',{((bool)dr["AllowDBNull"] ? 1 : 0)},''
+,{(bool.TryParse(dr["IsKey"] + "", out bool bres) ? bres ? 1 : 0 : 0)},'','','','',0,1)
+end
+
+";
+
+                listStr.Add(sSql);
+            }
+            DBHelper.RunSql(listStr, CommandType.Text, null);
         }
 
         private void BtnCancel_Click(object sender, EventArgs e)
@@ -170,47 +197,72 @@ end
 
             string[] ChildKeys = _mgrid.PrimaryKey;
 
-            if (_mgrid.Columns.Count < 10)
+
+            int itenWidth = 0;
+            foreach (DataGridViewColumn col in _mgrid.Columns)
             {
-                int itenWidth = 0;
-                foreach (DataGridViewColumn col in _mgrid.Columns)
+                ComponentLableAndControl lableAndControl = new ComponentLableAndControl();
+                lableAndControl.Controls.Add(new Label() { Text = col.HeaderText, TextAlign = ContentAlignment.MiddleRight, Dock = DockStyle.Left });
+
+                Control ctrl = null;
+                if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
                 {
-                    ComponentLableAndControl lableAndControl = new ComponentLableAndControl();
-                    lableAndControl.Controls.Add(new Label() { Text = col.HeaderText, TextAlign = ContentAlignment.MiddleRight, Dock = DockStyle.Left });
+                    ctrl = new CheckBox() { Name = col.DataPropertyName, Dock = DockStyle.Right };
+                }
+                else
+                {
+                    ctrl = new TextBox() { Name = col.DataPropertyName, Dock = DockStyle.Right };
+                }
 
-                    Control ctrl = new TextBox() { Name = col.HeaderText, Dock = DockStyle.Right };
-
-                    if (_mbEdit)
+                if (_mbEdit)
+                {
+                    if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
                     {
-                        ctrl.Text = _mdataRow.Cells[ctrl.Name].Value + "";
+                        CheckBox chk = ctrl as CheckBox;
+                        chk.Checked = (bool)_mdataRow.Cells[ctrl.Name].Value;
+                        chk.Enabled = !(bool)col.Tag;
                     }
                     else
                     {
-                        if (ChildKeys != null)
+                        TextBox txt = ctrl as TextBox;
+                        txt.Text = _mdataRow.Cells[ctrl.Name].Value + "";
+                        txt.ReadOnly = (bool)col.Tag;
+                    }
+                }
+                else
+                {
+                    if (ChildKeys != null)
+                    {
+                        for (int i = 0; i < ChildKeys.Length; i++)
                         {
-                            for (int i = 0; i < ChildKeys.Length; i++)
+                            if (ChildKeys[i].Equals(ctrl.Name, StringComparison.OrdinalIgnoreCase))
                             {
-                                if (ChildKeys[i].Equals(ctrl.Name, StringComparison.OrdinalIgnoreCase))
+                                if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
                                 {
-                                    ctrl.Text = KeysValues[i];
+                                    CheckBox chk = ctrl as CheckBox;
+                                    chk.Checked = Convert.ToBoolean(KeysValues[i]);
+                                    chk.Enabled = !(bool)col.Tag;
+                                }
+                                else
+                                {
+                                    TextBox txt = ctrl as TextBox;
+                                    txt.Text = KeysValues[i];
+                                    txt.ReadOnly = (bool)col.Tag;
                                 }
                             }
                         }
                     }
-
-                    lableAndControl.Controls.Add(ctrl);
-                    if (ctrl.Name.Equals("fid", StringComparison.OrdinalIgnoreCase)
-                        || ctrl.Name.Equals("id", StringComparison.OrdinalIgnoreCase))
-                    {
-                        lableAndControl.Visible = false;
-                    }
-
-                    flowLayout.Controls.Add(lableAndControl);
-                    this.Height += lableAndControl.Height * 2;
-                    itenWidth = lableAndControl.Width;
                 }
-                this.Width = itenWidth + 50;
+
+                lableAndControl.Controls.Add(ctrl);
+
+                lableAndControl.Visible = col.Visible;
+
+                flowLayout.Controls.Add(lableAndControl);
+                this.Height += lableAndControl.Height * 2;
+                itenWidth = lableAndControl.Width;
             }
+            this.Width = itenWidth + 50;
         }
     }
 }

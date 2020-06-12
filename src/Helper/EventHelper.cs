@@ -1,21 +1,29 @@
 ﻿using AGW.Base.Components;
-using AGW.Base.Helper;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Linq;
-using System.Net.Configuration;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+
+/* function: EventHelper
+ * Date:2020 06 12
+ * Creator:  ligy  
+ *
+ * Data                                     Modifier                                    Details
+ * 
+ * 
+ *
+ *************************************************************************************************************************/
 
 namespace AGW.Base.Helper
 {
     public class EventHelper
     {
 
-
+        /// <summary>
+        /// bind cell on click event on data container
+        /// </summary>
+        /// <param name="dataGrid">container</param>
         public void BindingCellClickEvent(ComponentDataGrid dataGrid)
         {
             dataGrid.CellClick += CommonCellClick;
@@ -23,10 +31,10 @@ namespace AGW.Base.Helper
         }
 
         /// <summary>
-        /// 容器单元格点击事件
+        /// Data container's cell on click event
         /// </summary>
-        /// <param name="sender">容器</param>
-        /// <param name="e">事件参数(不适用)</param>
+        /// <param name="sender">container</param>
+        /// <param name="e">data args</param>
         private void CommonCellClick(object sender, DataGridViewCellEventArgs e)
         {
             ComponentDataGrid dataGrid = sender as ComponentDataGrid;
@@ -96,12 +104,12 @@ namespace AGW.Base.Helper
         }
 
         /// <summary>
-        /// 获取Where条件
+        /// Get sql where character string 
         /// </summary>
-        /// <param name="drParent">父容器点击的行数据</param>
-        /// <param name="arrParent">父容器的主键</param>
-        /// <param name="arrChild">子容器的主键</param>
-        /// <returns>where sql</returns>
+        /// <param name="drParent">The single row whick parent container had selected </param>
+        /// <param name="arrParent">Parent container's primary keys</param>
+        /// <param name="arrChild">Child container's primary keys</param>
+        /// <returns>where character string</returns>
         private string GetWhereString(DataGridViewRow drParent, string[] arrParent, string[] arrChild)
         {
             List<string> lisWhere = new List<string>();
@@ -114,9 +122,9 @@ namespace AGW.Base.Helper
         }
 
         /// <summary>
-        /// 清楚容器行数据+
+        /// Clear child container's rows
         /// </summary>
-        /// <param name="dataGrid"></param>
+        /// <param name="dataGrid">Child container</param>
         private void ClearRows(ComponentDataGrid dataGrid)
         {
             List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenDataGrid();
@@ -135,7 +143,10 @@ namespace AGW.Base.Helper
         }
 
 
-
+        /// <summary>
+        /// Add events for toolbar
+        /// </summary>
+        /// <param name="toolbar">Toolbar</param>
         private void ToolbarAddEvent(ComponentToolbar toolbar)
         {
             foreach (ToolStripButton button in toolbar.Items)
@@ -162,6 +173,11 @@ namespace AGW.Base.Helper
             }
         }
 
+        /// <summary>
+        /// Csutom button OnClick Event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CustomClick(object sender, EventArgs e)
         {
             ToolStripButton button = sender as ToolStripButton;
@@ -184,15 +200,20 @@ namespace AGW.Base.Helper
             }
         }
 
+        /// <summary>
+        /// Edit Button OnClick Event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void EditClick(object sender, EventArgs e)
         {
             ToolStripButton button = sender as ToolStripButton;
             ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
             var grid = tool.DataGrid;
             var rows = grid.SelectedRows;
-            if (rows == null)
+            if (rows == null || rows.Count == 0)
             {
-                MessageBox.Show("当前没有可以编辑的数据!");
+                MessageBox.Show("当前没有可以编辑的数据!", "title", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             frmModule form = new frmModule(grid, true);
@@ -201,18 +222,23 @@ namespace AGW.Base.Helper
             form.ShowDialog();
         }
 
+        /// <summary>
+        /// Delete Button OnClick Event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DeleteClick(object sender, EventArgs e)
         {
             ToolStripButton button = sender as ToolStripButton;
             ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
             var grid = tool.DataGrid;
             var rows = grid.SelectedRows;
-            if (rows == null)
+            if (rows == null || rows.Count == 0)
             {
-                MessageBox.Show("当前没有可以删除的数据!");
+                MessageBox.Show("当前没有可以删除的数据!", "title", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            DialogResult dr = MessageBox.Show("是否删除选中行", "title", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dr = MessageBox.Show($"是否删除选中的{rows.Count}行", "title", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
                 List<DataGridViewRow> lisRow = new List<DataGridViewRow>();
@@ -230,6 +256,11 @@ namespace AGW.Base.Helper
             }
         }
 
+        /// <summary>
+        /// Add Button OnClick Event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void AddClick(object sender, EventArgs e)
         {
             ToolStripButton button = sender as ToolStripButton;
@@ -244,7 +275,7 @@ namespace AGW.Base.Helper
 
 
         /// <summary>
-        /// 刷新
+        /// Refresh Button OnClick Event
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

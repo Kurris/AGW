@@ -14,8 +14,19 @@ namespace AGW.Base.Plugins
 
         }
 
+        /// <summary>
+        /// Connected data container
+        /// </summary>
         public ComponentDataGrid DataGrid { get; internal set; }
 
-        public abstract void OnActived();
+        /// <summary>
+        /// User Info
+        /// </summary>
+        public UserInfo UserInfo { get; internal set; }
+
+        /// <summary>
+        /// Function Entry
+        /// </summary>
+        public abstract void OnActivated();
     }
 }

@@ -4,14 +4,8 @@ using AGW.Base.Helper;
 using DevExpress.XtraEditors;
 using DevExpress.XtraNavBar;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AGW.Main
@@ -164,13 +158,13 @@ namespace AGW.Main
             dtMain.TableName = drProgramInfo["fTable"] + "";
             dtMain.Namespace = smainSql1;
 
+            ComponentPanel panel = new ComponentPanel(true);
 
-            ComponentPanel panle = new ComponentPanel(true);
-            ComponentDataGrid grid = panle.InitializeNewTabPage(drProgramInfo["fCNName"] + "", SourceFormName, dtMain);
+            ComponentDataGrid grid = panel.InitializeNewTabPage(drProgramInfo["fCNName"] + "", SourceFormName, dtMain);
 
-            panle.Dock = DockStyle.Top;
-            MainTab.SelectedTab.Controls.Add(panle);
-            panle.BringToFront();
+            panel.Dock = DockStyle.Top;
+            MainTab.SelectedTab.Controls.Add(panel);
+            panel.BringToFront();
 
             string srelationSql = $@"select * from T_FormRelationships with(nolock) where fmainname = '{SourceFormName}'";
             DataTable dtRelationShip = DBHelper.GetDataTable(srelationSql);
@@ -178,7 +172,7 @@ namespace AGW.Main
             //无从属关系
             if (dtRelationShip == null || dtRelationShip.Rows.Count == 0)
             {
-                panle.Dock = DockStyle.Fill;
+                panel.Dock = DockStyle.Fill;
                 EventHelper eventHelperOnly = new EventHelper();
 
                 eventHelperOnly.BindingCellClickEvent(grid);
