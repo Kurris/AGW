@@ -189,7 +189,6 @@ end
 
         public void Initialize()
         {
-            int iclientHeight = this.Height;
             int ibottomHeight = this.panelBtn.Height;
             this.Height = ibottomHeight;
 
@@ -204,6 +203,9 @@ end
                 ComponentLableAndControl lableAndControl = new ComponentLableAndControl();
                 lableAndControl.Controls.Add(new Label() { Text = col.HeaderText, TextAlign = ContentAlignment.MiddleRight, Dock = DockStyle.Left });
 
+                ColumnInfo colinfo = col.Tag as ColumnInfo;
+
+
                 Control ctrl = null;
                 if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
                 {
@@ -212,6 +214,7 @@ end
                 else
                 {
                     ctrl = new TextBox() { Name = col.DataPropertyName, Dock = DockStyle.Right };
+                    ctrl.Text = colinfo.DefaultValue;
                 }
 
                 if (_mbEdit)
@@ -220,13 +223,13 @@ end
                     {
                         CheckBox chk = ctrl as CheckBox;
                         chk.Checked = (bool)_mdataRow.Cells[ctrl.Name].Value;
-                        chk.Enabled = !(bool)col.Tag;
+                        chk.Enabled = !colinfo.ReadOnly;
                     }
                     else
                     {
                         TextBox txt = ctrl as TextBox;
                         txt.Text = _mdataRow.Cells[ctrl.Name].Value + "";
-                        txt.ReadOnly = (bool)col.Tag;
+                        txt.ReadOnly = colinfo.ReadOnly;
                     }
                 }
                 else
@@ -241,13 +244,13 @@ end
                                 {
                                     CheckBox chk = ctrl as CheckBox;
                                     chk.Checked = Convert.ToBoolean(KeysValues[i]);
-                                    chk.Enabled = !(bool)col.Tag;
+                                    chk.Enabled = !colinfo.ReadOnly;
                                 }
                                 else
                                 {
                                     TextBox txt = ctrl as TextBox;
                                     txt.Text = KeysValues[i];
-                                    txt.ReadOnly = (bool)col.Tag;
+                                    txt.ReadOnly = colinfo.ReadOnly;
                                 }
                             }
                         }
@@ -256,7 +259,7 @@ end
 
                 lableAndControl.Controls.Add(ctrl);
 
-                lableAndControl.Visible = col.Visible;
+                lableAndControl.Visible = colinfo.Visible;
 
                 flowLayout.Controls.Add(lableAndControl);
                 this.Height += lableAndControl.Height * 2;

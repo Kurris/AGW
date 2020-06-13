@@ -1,4 +1,5 @@
 ﻿using AGW.Base.Helper;
+using System;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
@@ -57,16 +58,28 @@ namespace AGW.Base.Components
             {
                 if (dtColInfo != null && dtColInfo.Rows.Count > 0)
                 {
-                    bgenTree = dtColInfo.Select("fInterFaceColIsTree = 1").Count() > 0
-                        ? true
-                        : false;
+                    DataRow[] rows = dtColInfo.Select("fInterFaceColIsTree = 1", "fnum");
+
+                    bgenTree = rows.Count() > 0
+                      ? true
+                      : false;
 
                     if (bgenTree)
                     {
                         Tree = new ComponentTree();
                         Tree.Dock = DockStyle.Left;
                         page.Controls.Add(Tree);
+
+                        ControlsHelper.HandleTree(Tree, rows, gridData);
+
+                        Tree.ExpandAll();
+
                         Tree.BringToFront();
+
+                        Splitter splitter = new Splitter();
+                        page.Controls.Add(splitter);
+                        splitter.BringToFront();
+                        splitter.Dock = DockStyle.Left;
                     }
                 }
             }

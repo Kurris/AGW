@@ -45,6 +45,7 @@ namespace AGW.Base
         /// <returns>翻译语言</returns>
         public static string GetLanguageByKey(string Key, bool ReLoad = false)
         {
+            Key = Key.ToLower();
             try
             {
                 if (_mdicLanguage == null)
@@ -103,7 +104,7 @@ namespace AGW.Base
 
                     foreach (DataRow dr in dtLanguage.Rows)
                     {
-                        string sKey = dr["fKey"] + "";
+                        string sKey = (dr["fKey"] + "").ToLower();
                         string sValue = dr[sColName] + "";
 
                         if (_mdicLanguage.ContainsKey(sKey)) continue;
@@ -119,6 +120,6 @@ namespace AGW.Base
         }
 
 
-        public UserInfo UserInfo { get; internal set; }
+        public static UserInfo UserInfo { get; internal set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AGW.Base.Components;
+using AGW.Base.Plugins;
+using System;
 using System.Reflection;
 using System.Windows.Forms;
 
@@ -12,12 +14,8 @@ using System.Windows.Forms;
  *
  *************************************************************************************************************************/
 
-
-
-
 namespace AGW.Base.Helper
 {
-    [Serializable]
     public class AssamblyHelper
     {
 
@@ -28,36 +26,29 @@ namespace AGW.Base.Helper
 
         private string _msfileName = string.Empty;
 
-        public void LoadAssembly(string FullName)
+        public void LoadAssembly(ToolStripButton Button, Action<object, EventArgs> Refresh, string FullName)
         {
+            Assembly assembly = Assembly.LoadFrom(_msfileName);
 
-            AppDomain appDomain = AppDomain.CreateDomain(FullName);
+            Type type = assembly.GetType(FullName);
 
-            string name = Assembly.GetExecutingAssembly().GetName().FullName;
+            if (type == null) return;
 
-            AssamblyProxyObject Proxy = (AssamblyProxyObject)appDomain.CreateInstanceAndUnwrap(name, typeof(AssamblyProxyObject).FullName);
+            object obj = Activator.CreateInstance(type);
 
-            Proxy.LoadAssembly(_msfileName, FullName);
+            if (obj == null) return;
 
-            AppDomain.Unload(appDomain);
-            appDomain = null;
-        }
-
-        private class AssamblyProxyObject : MarshalByRefObject
-        {
-            public AssamblyProxyObject()
+            if (obj is ComponentToolBarPlugins)
             {
+                ComponentToolbar toolbar = Button.GetCurrentParent() as ComponentToolbar;
 
+                ComponentToolBarPlugins abPlugin = obj as ComponentToolBarPlugins;
+                abPlugin.DataGrid = toolbar.DataGrid;
+                abPlugin.UserInfo = GlobalInvariant.UserInfo;
+                abPlugin.RefreshDataGrid = Refresh;
+
+                abPlugin.OnActivated();
             }
-
-            public void LoadAssembly(string FileName, string FullName)
-            {
-                Assembly assembly = Assembly.LoadFrom(FileName);
-
-                Type type = assembly.GetType(FullName);
-                (Activator.CreateInstance(type) as Form).ShowDialog();
-            }
-
         }
     }
 }

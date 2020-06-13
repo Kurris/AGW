@@ -1,5 +1,7 @@
 ﻿using AGW.Base.Components;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
@@ -130,7 +132,7 @@ where a.fInterFaceName = '{name}'");
         /// 初始化CompontentDataGrid样式
         /// </summary>
         /// <param name="MainDgv"></param>
-        public static void InitStyle(ComponentDataGrid dgv, DataTable ColInfo)
+        public static void InitStyle(ComponentDataGrid dgv, DataTable ColData)
         {
             dgv.ReadOnly = true;
             dgv.BackgroundColor = Color.White;
@@ -164,11 +166,28 @@ where a.fInterFaceName = '{name}'");
                     col.CellTemplate = new DataGridViewTextBoxCell();
                 }
 
-                col.Name = dc.ColumnName;
-                col.Visible = GetValue(ColInfo,"fvisiable" ,col.Name);
-                col.Tag = GetValue(ColInfo, "freadonly", col.Name);
-                col.DataPropertyName = dc.ColumnName;
-                col.HeaderText = col.HeaderText = GlobalInvariant.GetLanguageByKey(dc.ColumnName);
+
+                var colinfo = new ColumnInfo()
+                {
+                    ReadOnly = GetValue<bool>(ColData, "freadonly", dc.ColumnName),
+                    Visible = GetValue<bool>(ColData, "fvisiable", dc.ColumnName),
+                    ColumnName = dc.ColumnName,
+                    DefaultValue = GetValue<string>(ColData, "fdefaultvalue", dc.ColumnName),
+                    Translation = GlobalInvariant.GetLanguageByKey(dc.ColumnName),
+                    DataPropertyName = dc.ColumnName,
+                    Num = GetValue<int>(ColData, "fnum", dc.ColumnName),
+                };
+
+
+                col.Name = colinfo.ColumnName;
+                col.DisplayIndex = colinfo.Num;
+                col.Visible = colinfo.Visible;
+                col.ReadOnly = colinfo.ReadOnly;
+                col.DataPropertyName = colinfo.ColumnName;
+                col.HeaderText = colinfo.Translation;
+
+                col.Tag = colinfo;
+
                 dgv.Columns.Add(col);
             }
 
@@ -177,14 +196,124 @@ where a.fInterFaceName = '{name}'");
                 dgv.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
 
-            bool GetValue(DataTable Data, string MatchColumn,string ColumnName)
+            T GetValue<T>(DataTable Data, string MatchColumn, string ColumnName)
             {
                 var row = Data.Select($"fcolname='{ColumnName}'").FirstOrDefault();
                 if (row != null)
                 {
-                    return (bool)row[MatchColumn];
+                    return (T)row[MatchColumn];
                 }
-                return false;
+                return default(T);
+            }
+        }
+
+
+        public static void HandleTree(TreeView Tree, DataRow[] ColumnInfoData, DataTable GridData)
+        {
+            var tor = ColumnInfoData.GetEnumerator();
+
+            if (tor.MoveNext())
+            {
+                string sColumnName = (tor.Current as DataRow)["fcolname"] + "";
+
+                var distinctData = GridData.AsEnumerable()
+               .Select(x => x[sColumnName].ToString())
+               .Distinct(StringComparer.OrdinalIgnoreCase);
+
+                foreach (string data in distinctData)
+                {
+                    TreeNode ctndata = new TreeNode()
+                    {
+                        Text = data,
+                        Name = sColumnName,
+                    };
+                    Tree.Nodes.Add(ctndata);
+                }
+
+                if (tor.MoveNext())
+                {
+                    sColumnName = (tor.Current as DataRow)["fcolname"] + "";
+
+                    foreach (TreeNode tn in Tree.Nodes)
+                    {
+                        if (tn.Name.Equals("all", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        RecusionTree(tor, tn, GridData, sColumnName);
+
+                        tor.Reset();
+                        tor.MoveNext();
+                    }
+                }
+            }
+        }
+
+        private static void RecusionTree(IEnumerator enumerator, TreeNode Node, DataTable GridData, string ColumnName, int MoveCount = 2)
+        {
+            string name = Node.Name;
+
+            string[] arrKey = null;
+            if (name.Contains(","))
+                arrKey = name.Split(',');
+            else
+                arrKey = new string[] { name };
+
+            TreeNode recursionnode = null;
+            string[] keyValues = new string[arrKey.Count()];
+            keyValues[0] = Node.Text;
+            for (int i = 1; i < arrKey.Count(); i++)
+            {
+                string sValue = string.Empty;
+                if (recursionnode == null)
+                    recursionnode = Node.Parent;
+                else
+                    recursionnode = recursionnode.Parent;
+
+                keyValues[i] = recursionnode.Text;
+            }
+
+
+            var distinctData = GridData.Select(GetWhereString(arrKey, keyValues)).
+                Select(x => x[ColumnName].ToString())
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+
+            foreach (string data in distinctData)
+            {
+                TreeNode Ctn = new TreeNode()
+                {
+                    Text = data,
+                    Name = Node.Name + "," + ColumnName,
+                };
+
+                Node.Nodes.Add(Ctn);
+            }
+
+            MoveCount++;
+
+            foreach (TreeNode tn in Node.Nodes)
+            {
+                if (enumerator.MoveNext())
+                {
+                    ColumnName = (enumerator.Current as DataRow)["fcolname"] + "";
+
+                    RecusionTree(enumerator, tn, GridData, ColumnName, MoveCount);
+                    enumerator.Reset();
+                    for (int i = 0; i < MoveCount - 1; i++)
+                    {
+                        enumerator.MoveNext();
+                    }
+                }
+            }
+
+
+            string GetWhereString(string[] ArrKey, string[] ArrValues)
+            {
+                List<string> listwhere = new List<string>();
+                for (int i = 0; i < ArrKey.Length; i++)
+                {
+                    listwhere.Add($"{ArrKey[i]}='{ArrValues[ArrKey.Length - 1 - i]}'");
+                }
+                return string.Join(" and ", listwhere);
             }
         }
     }

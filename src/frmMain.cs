@@ -49,7 +49,7 @@ namespace AGW.Main
         /// </summary>
         void InitNavbar()
         {
-            string sSql = @"SELECT * FROM t_Navigation with(nolock) order by num desc";
+            string sSql = @"SELECT * FROM t_Navigation with(nolock) ";
             DataTable dt = DBHelper.GetDataTable(sSql);
 
             MainNavBar.Groups.Clear();
@@ -85,7 +85,7 @@ namespace AGW.Main
                 {
                     TreeNode fnode = new TreeNode();
                     fnode.Name = string.Empty;//DataHelper.ToString(drr["fNo"]);
-                    fnode.Tag = Convert.ToInt32(drr["fId"]);
+                    fnode.Tag = Convert.ToInt32(drr["fCid"]);
                     fnode.Text = drr["fName"] + "";
                     treeview.Nodes.Add(fnode);
                     FindChildNode(dt, fnode, Convert.ToInt32(fnode.Tag));
@@ -99,7 +99,7 @@ namespace AGW.Main
                         if (Convert.ToInt32(drS["fPid"]) == ifid)
                         {
                             TreeNode snode = new TreeNode();
-                            snode.Tag = Convert.ToInt32(drS["fId"]);
+                            snode.Tag = Convert.ToInt32(drS["fCid"]);
                             snode.Text = drS["fName"] + "";
                             snode.Name = drS["fAssembly"] + "";
                             fnode.Nodes.Add(snode);

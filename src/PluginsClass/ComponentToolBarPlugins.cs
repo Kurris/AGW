@@ -1,9 +1,5 @@
 ﻿using AGW.Base.Components;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AGW.Base.Plugins
 {
@@ -15,6 +11,12 @@ namespace AGW.Base.Plugins
         }
 
         /// <summary>
+        /// Function Entry
+        /// </summary>
+        public abstract void OnActivated();
+
+
+        /// <summary>
         /// Connected data container
         /// </summary>
         public ComponentDataGrid DataGrid { get; internal set; }
@@ -24,9 +26,12 @@ namespace AGW.Base.Plugins
         /// </summary>
         public UserInfo UserInfo { get; internal set; }
 
-        /// <summary>
-        /// Function Entry
-        /// </summary>
-        public abstract void OnActivated();
+
+        internal Action<object, EventArgs> RefreshDataGrid { private get; set; }
+
+        public virtual void RefreshGrid()
+        {
+            RefreshDataGrid.Invoke(DataGrid.Toolbar, null);
+        }
     }
 }

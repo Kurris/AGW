@@ -20,6 +20,8 @@ namespace AGW.Base.Helper
     public class EventHelper
     {
 
+        private List<string> _mlistEventRegist = new List<string>();
+
         /// <summary>
         /// bind cell on click event on data container
         /// </summary>
@@ -27,8 +29,17 @@ namespace AGW.Base.Helper
         public void BindingCellClickEvent(ComponentDataGrid dataGrid)
         {
             dataGrid.CellClick += CommonCellClick;
+            dataGrid.CellDoubleClick += CommonCellDoubleClick;
             CommonCellClick(dataGrid, null);
         }
+
+        private void CommonCellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e != null && e.RowIndex < 0) return;
+           
+            EditClick(sender, null);
+        }
+
 
         /// <summary>
         /// Data container's cell on click event
@@ -37,6 +48,8 @@ namespace AGW.Base.Helper
         /// <param name="e">data args</param>
         private void CommonCellClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (e != null && e.RowIndex < 0) return;
+
             ComponentDataGrid dataGrid = sender as ComponentDataGrid;
 
             if (e == null)
@@ -97,7 +110,16 @@ namespace AGW.Base.Helper
                 dt.Namespace = sql;
                 dt.TableName = tablename;
                 grid.DataSource = dt;
-                grid.CellClick += CommonCellClick;
+
+                if (!_mlistEventRegist.Contains(grid.Name))
+                {
+                    grid.CellClick += CommonCellClick;
+                    grid.CellDoubleClick += CommonCellDoubleClick;
+
+                    _mlistEventRegist.Add(grid.Name);
+                }
+
+
                 CommonCellClick(grid, e);
             }
 
@@ -166,8 +188,21 @@ namespace AGW.Base.Helper
                     case "edit":
                         button.Click += EditClick;
                         break;
-                    case "custom":
-                        button.Click += CustomClick;
+                    default:
+
+                        string sassamblyFullName = button.Name;
+                        string[] arrFullName = sassamblyFullName.Split(',');
+                        string sfielName = Path.Combine(Application.StartupPath, "Locallib", arrFullName[0] + ".dll");
+
+                        if (!File.Exists(sfielName))
+                        {
+                            button.Visible = false;
+                        }
+                        else
+                        {
+                            button.Click += CustomClick;
+                        }
+
                         break;
                 }
             }
@@ -191,12 +226,11 @@ namespace AGW.Base.Helper
                 if (!File.Exists(sfielName)) throw new FileNotFoundException(sfielName);
 
                 AssamblyHelper assamblyHelper = new AssamblyHelper(sfielName);
-                assamblyHelper.LoadAssembly(sassamblyFullName);
-
+                assamblyHelper.LoadAssembly(button, RefreshClick, arrFullName[0] + "." + arrFullName[1]);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                button.Visible = false;
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -208,8 +242,20 @@ namespace AGW.Base.Helper
         private void EditClick(object sender, EventArgs e)
         {
             ToolStripButton button = sender as ToolStripButton;
-            ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
-            var grid = tool.DataGrid;
+
+            ComponentToolbar tool = null;
+            ComponentDataGrid grid = null;
+
+            if (button != null)
+            {
+                tool = button.GetCurrentParent() as ComponentToolbar;
+                grid = tool.DataGrid;
+            }
+            else
+            {
+                grid = sender as ComponentDataGrid;
+            }
+
             var rows = grid.SelectedRows;
             if (rows == null || rows.Count == 0)
             {

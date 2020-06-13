@@ -19,6 +19,7 @@ namespace AGW.Base.Components
                 Name = "All",
                 Text = "全部"
             });
+            this.Width = 300;
         }
 
         public ComponentDataGrid DataGrid { get; private set; }
