@@ -101,28 +101,6 @@ where a.fInterFaceName = '{name}'");
             grid.AutoGenerateColumns = false;
             grid.DataSource = gridData;
 
-
-            var menu = new ContextMenuStrip();
-            menu.Items.Add("查看当前SQL");
-            menu.Items.Add("查看当前Table");
-            menu.ItemClicked += (s, e) =>
-            {
-                ContextMenuStrip toolstrip = e.ClickedItem.GetCurrentParent() as ContextMenuStrip;
-                ComponentDataGrid getDgv = toolstrip.SourceControl as ComponentDataGrid;
-                menu.Hide();
-
-                if (e.ClickedItem.Text.Equals("查看当前SQL"))
-                {
-                    MessageBox.Show((getDgv.DataSource as DataTable).Namespace);
-                }
-                else if (e.ClickedItem.Text.Equals("查看当前Table"))
-                {
-                    MessageBox.Show((getDgv.DataSource as DataTable).TableName);
-                }
-            };
-
-            grid.ContextMenuStrip = menu;
-
             InitStyle(grid, gridColInfo);
 
             return grid;
@@ -136,11 +114,10 @@ where a.fInterFaceName = '{name}'");
         {
             dgv.ReadOnly = true;
             dgv.BackgroundColor = Color.White;
-            dgv.RowHeadersVisible = false;
+
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-
 
             dgv.AllowUserToAddRows = false;
 
@@ -149,6 +126,9 @@ where a.fInterFaceName = '{name}'");
             dgv.AdvancedColumnHeadersBorderStyle.Bottom = DataGridViewAdvancedCellBorderStyle.None;
             dgv.AdvancedColumnHeadersBorderStyle.Left = DataGridViewAdvancedCellBorderStyle.None;
             dgv.AdvancedColumnHeadersBorderStyle.Right = DataGridViewAdvancedCellBorderStyle.None;
+
+            dgv.TopLeftHeaderCell.Value = "行号";
+
 
             DataTable dt = dgv.DataSource as DataTable;
             foreach (DataColumn dc in dt.Columns)
@@ -165,7 +145,6 @@ where a.fInterFaceName = '{name}'");
                     col = new DataGridViewTextBoxColumn();
                     col.CellTemplate = new DataGridViewTextBoxCell();
                 }
-
 
                 var colinfo = new ColumnInfo()
                 {
@@ -187,13 +166,8 @@ where a.fInterFaceName = '{name}'");
                 col.HeaderText = colinfo.Translation;
 
                 col.Tag = colinfo;
-
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
                 dgv.Columns.Add(col);
-            }
-
-            for (int i = 0; i < dgv.ColumnCount; i++)
-            {
-                dgv.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
 
             T GetValue<T>(DataTable Data, string MatchColumn, string ColumnName)
@@ -247,7 +221,7 @@ where a.fInterFaceName = '{name}'");
             }
         }
 
-        private static void RecusionTree(IEnumerator enumerator, TreeNode Node, DataTable GridData, string ColumnName, int MoveCount = 2)
+        private static void RecusionTree(IEnumerator Tor, TreeNode Node, DataTable GridData, string ColumnName, int MoveCount = 2)
         {
             string name = Node.Name;
 
@@ -257,18 +231,15 @@ where a.fInterFaceName = '{name}'");
             else
                 arrKey = new string[] { name };
 
-            TreeNode recursionnode = null;
             string[] keyValues = new string[arrKey.Count()];
-            keyValues[0] = Node.Text;
-            for (int i = 1; i < arrKey.Count(); i++)
-            {
-                string sValue = string.Empty;
-                if (recursionnode == null)
-                    recursionnode = Node.Parent;
-                else
-                    recursionnode = recursionnode.Parent;
 
-                keyValues[i] = recursionnode.Text;
+            TreeNode recursionnode = Node;
+
+            for (int i = 0; i < arrKey.Length; i++)
+            {
+                string sValue = recursionnode.Text;
+                keyValues[arrKey.Length - 1 - i] = sValue;
+                recursionnode = Node.Parent;
             }
 
 
@@ -292,26 +263,25 @@ where a.fInterFaceName = '{name}'");
 
             foreach (TreeNode tn in Node.Nodes)
             {
-                if (enumerator.MoveNext())
+                if (Tor.MoveNext())
                 {
-                    ColumnName = (enumerator.Current as DataRow)["fcolname"] + "";
+                    ColumnName = (Tor.Current as DataRow)["fcolname"] + "";
 
-                    RecusionTree(enumerator, tn, GridData, ColumnName, MoveCount);
-                    enumerator.Reset();
+                    RecusionTree(Tor, tn, GridData, ColumnName, MoveCount);
+                    Tor.Reset();
                     for (int i = 0; i < MoveCount - 1; i++)
                     {
-                        enumerator.MoveNext();
+                        Tor.MoveNext();
                     }
                 }
             }
-
 
             string GetWhereString(string[] ArrKey, string[] ArrValues)
             {
                 List<string> listwhere = new List<string>();
                 for (int i = 0; i < ArrKey.Length; i++)
                 {
-                    listwhere.Add($"{ArrKey[i]}='{ArrValues[ArrKey.Length - 1 - i]}'");
+                    listwhere.Add($"{ArrKey[i]}='{ArrValues[i]}'");
                 }
                 return string.Join(" and ", listwhere);
             }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -19,24 +20,117 @@ namespace AGW.Base.Helper
 {
     public class EventHelper
     {
-
         private List<string> _mlistEventRegist = new List<string>();
 
         /// <summary>
         /// bind cell on click event on data container
         /// </summary>
         /// <param name="dataGrid">container</param>
-        public void BindingCellClickEvent(ComponentDataGrid dataGrid)
+        public void BindingCellClickEvent(ComponentDataGrid Grid)
         {
-            dataGrid.CellClick += CommonCellClick;
-            dataGrid.CellDoubleClick += CommonCellDoubleClick;
-            CommonCellClick(dataGrid, null);
+            Grid.CellClick += CommonCellClick;
+            Grid.CellDoubleClick += CommonCellDoubleClick;
+            Grid.RowPostPaint += CommonRowPostPaint;
+            BindMenuStrip(Grid);
+
+            CommonCellClick(Grid, null);
         }
 
+        public void BindingTreeNodeOnClick(ComponentTree Tree)
+        {
+            Tree.AfterSelect += Tree_AfterSelect;
+        }
+
+        private void Tree_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            TreeNode CurrentNode = e.Node;
+
+            string sqlFliter = string.Empty;
+            if (e.Node.Name.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                sqlFliter = " 1=1 ";
+            }
+            else
+            {
+                if (e.Node.Nodes.Count > 0) return;
+
+                string sCondition = CurrentNode.Name;
+
+                string[] arrCondition = null;
+                if (sCondition.Contains(","))
+                    arrCondition = sCondition.Split(',');
+                else
+                    arrCondition = new string[] { sCondition };
+
+                string[] arrValue = new string[arrCondition.Length];
+                for (int i = 0; i < arrCondition.Length; i++)
+                {
+                    string sValue = CurrentNode.Text;
+                    arrValue[arrCondition.Length - 1 - i] = sValue;
+
+                    if (CurrentNode.Parent != null)
+                    {
+                        CurrentNode = CurrentNode.Parent;
+                    }
+                }
+
+                sqlFliter = GetWhereString(arrCondition, arrValue);
+
+                string GetWhereString(string[] ArrKey, string[] ArrValues)
+                {
+                    List<string> listwhere = new List<string>();
+                    for (int i = 0; i < ArrKey.Length; i++)
+                    {
+                        listwhere.Add($"{ArrKey[i]}='{ArrValues[i]}'");
+                    }
+                    return string.Join(" and ", listwhere);
+                }
+            }
+
+            ComponentTree Tree = CurrentNode.TreeView as ComponentTree;
+
+            DataTable dt = Tree.DataGrid.DataSource as DataTable;
+
+            string Sql = dt.Namespace;
+
+            int iindex = Sql.LastIndexOf("where", StringComparison.OrdinalIgnoreCase);
+            if (iindex < 0)
+            {
+                Sql = Sql + "\r\n where " + sqlFliter;
+            }
+            else
+            {
+                Sql = Sql.Substring(0, iindex).TrimEnd() + "\r\n where " + sqlFliter;
+            }
+            dt.Namespace = Sql;
+
+            RefreshClick(Tree.DataGrid.Toolbar, null);
+        }
+
+        private void CommonRowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+            var grid = sender as DataGridView;
+            var rowIdx = (e.RowIndex + 1).ToString();
+
+            StringFormat sf = new StringFormat()
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            var RowBounds = new Rectangle(e.RowBounds.Left, e.RowBounds.Top, grid.RowHeadersWidth, e.RowBounds.Height);
+            e.Graphics.DrawString(rowIdx, grid.Font, SystemBrushes.ControlText, RowBounds, sf);
+        }
+
+        /// <summary>
+        /// bind cell on double click event on data container
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CommonCellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e != null && e.RowIndex < 0) return;
-           
+
             EditClick(sender, null);
         }
 
@@ -115,14 +209,41 @@ namespace AGW.Base.Helper
                 {
                     grid.CellClick += CommonCellClick;
                     grid.CellDoubleClick += CommonCellDoubleClick;
+                    grid.RowPostPaint += CommonRowPostPaint;
+                    BindMenuStrip(grid);
 
                     _mlistEventRegist.Add(grid.Name);
                 }
 
-
                 CommonCellClick(grid, e);
             }
 
+        }
+
+        private void BindMenuStrip(DataGridView grid)
+        {
+            var menu = new ContextMenuStrip();
+            menu.Items.Add("复制");
+            menu.Items.Add("查看当前数据源");
+
+            menu.ItemClicked += (s, e) =>
+            {
+                ContextMenuStrip toolstrip = e.ClickedItem.GetCurrentParent() as ContextMenuStrip;
+
+                ComponentDataGrid getDgv = toolstrip.SourceControl as ComponentDataGrid;
+                toolstrip.Hide();
+
+                if (e.ClickedItem.Text.Equals("查看当前数据源"))
+                {
+                    new frmDataSource(grid.Name, (getDgv.DataSource as DataTable).Namespace).ShowDialog();
+                }
+                else if (e.ClickedItem.Text.Equals("复制"))
+                {
+                    Clipboard.SetText(getDgv.CurrentCell.Value.ToString(), TextDataFormat.UnicodeText);
+                }
+            };
+
+            grid.ContextMenuStrip = menu;
         }
 
         /// <summary>
@@ -195,13 +316,9 @@ namespace AGW.Base.Helper
                         string sfielName = Path.Combine(Application.StartupPath, "Locallib", arrFullName[0] + ".dll");
 
                         if (!File.Exists(sfielName))
-                        {
                             button.Visible = false;
-                        }
                         else
-                        {
                             button.Click += CustomClick;
-                        }
 
                         break;
                 }
@@ -278,27 +395,40 @@ namespace AGW.Base.Helper
             ToolStripButton button = sender as ToolStripButton;
             ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
             var grid = tool.DataGrid;
+
             var rows = grid.SelectedRows;
+
             if (rows == null || rows.Count == 0)
             {
                 MessageBox.Show("当前没有可以删除的数据!", "title", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
+
             DialogResult dr = MessageBox.Show($"是否删除选中的{rows.Count}行", "title", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
-                List<DataGridViewRow> lisRow = new List<DataGridViewRow>();
+                int iIndex = rows[0].Index;
+
+                // List<DataGridViewRow> lisRow = new List<DataGridViewRow>();
+
+                List<string> lisStr = new List<string>(rows.Count);
+
                 foreach (DataGridViewRow row in rows)
                 {
-                    lisRow.Add(row);
+                    var rowDelete = row.DataBoundItem as DataRowView;
+                    rowDelete.Delete();
+                    lisStr.Add($@"delete from {(grid.DataSource as DataTable).TableName} where fid ={(int)rowDelete["fid"]}");
                 }
-                List<string> lisStr = new List<string>(lisRow.Count);
-                lisRow.ForEach(new Action<DataGridViewRow>(x =>
-                {
-                    lisStr.Add($@"delete from {(grid.DataSource as DataTable).TableName} where fid ={(int)x.Cells["fid"].Value}");
-                    grid.Rows.Remove(x);
-                }));
+
                 DBHelper.RunSql(lisStr, CommandType.Text, null);
+
+                //删除后自动点击
+                if (grid.RowCount == iIndex && grid.RowCount != 0)
+                {
+                    int rowIndex = iIndex - 1;
+                    grid.Rows[rowIndex].Selected = true;
+                    CommonCellClick(grid, new DataGridViewCellEventArgs(0, rowIndex));
+                }
             }
         }
 

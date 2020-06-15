@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace AGW.Base.Components
 {
-    public partial class frmModule : Form
+    public partial class frmModule : FrmBase
     {
         public frmModule(ComponentDataGrid grid, bool Edit = false)
         {

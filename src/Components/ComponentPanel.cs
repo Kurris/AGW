@@ -53,37 +53,43 @@ namespace AGW.Base.Components
             toolstrip.BringToFront();
 
             DataTable dtColInfo = DBHelper.GetDataTable($@"select * from T_InterfaceColums where fInterfacename='{name}'");
+
             bool bgenTree = false;
-            if (_mbMain)
+
+            if (!_mbMain) goto NoTreeGeneral;
+
+            if (dtColInfo != null && dtColInfo.Rows.Count > 0)
             {
-                if (dtColInfo != null && dtColInfo.Rows.Count > 0)
+                DataRow[] rows = dtColInfo.Select("fInterFaceColIsTree = 1", "fnum");
+
+                bgenTree = rows.Count() > 0
+                  ? true
+                  : false;
+
+                if (bgenTree)
                 {
-                    DataRow[] rows = dtColInfo.Select("fInterFaceColIsTree = 1", "fnum");
+                    Tree = new ComponentTree();
+                    Tree.Dock = DockStyle.Left;
+                    page.Controls.Add(Tree);
 
-                    bgenTree = rows.Count() > 0
-                      ? true
-                      : false;
+                    ControlsHelper.HandleTree(Tree, rows, gridData);
 
-                    if (bgenTree)
-                    {
-                        Tree = new ComponentTree();
-                        Tree.Dock = DockStyle.Left;
-                        page.Controls.Add(Tree);
+                    EventHelper helper = new EventHelper();
+                    helper.BindingTreeNodeOnClick(Tree);
 
-                        ControlsHelper.HandleTree(Tree, rows, gridData);
+                    Tree.ExpandAll();
 
-                        Tree.ExpandAll();
+                    Tree.BringToFront();
 
-                        Tree.BringToFront();
-
-                        Splitter splitter = new Splitter();
-                        page.Controls.Add(splitter);
-                        splitter.BringToFront();
-                        splitter.Dock = DockStyle.Left;
-                    }
+                    Splitter splitter = new Splitter();
+                    page.Controls.Add(splitter);
+                    splitter.BringToFront();
+                    splitter.Dock = DockStyle.Left;
                 }
             }
 
+            //没有树结构
+            NoTreeGeneral:
 
 
             ComponentDataGrid dgv = ControlsHelper.NewDataGrid(gridData, dtColInfo);
@@ -103,6 +109,8 @@ namespace AGW.Base.Components
             {
                 Tree.BindingDataGrid(dgv);
                 Tree.BindingTabPage(page);
+
+                dgv.BindingTree(Tree);
 
                 _mbMain = false;
             }

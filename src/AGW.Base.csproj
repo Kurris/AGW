@@ -52,6 +52,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColumnInfo.cs" />
+    <Compile Include="Components\frmDataSource.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Components\frmDataSource.Designer.cs">
+      <DependentUpon>frmDataSource.cs</DependentUpon>
+    </Compile>
     <Compile Include="GlobalInvariant.cs" />
     <Compile Include="PluginsClass\ComponentToolBarPlugins.cs" />
     <Compile Include="Components\ComponentLableAndControl.cs">
@@ -88,6 +94,9 @@
     <Compile Include="Components\IComponentLink.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UserInfo.cs" />
+    <EmbeddedResource Include="Components\frmDataSource.resx">
+      <DependentUpon>frmDataSource.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Components\frmModule.resx">
       <DependentUpon>frmModule.cs</DependentUpon>
     </EmbeddedResource>

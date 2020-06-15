@@ -152,7 +152,7 @@ namespace AGW.Main
             DataTable dtProgramInfo = DBHelper.GetDataTable(smainSql);
             DataRow drProgramInfo = dtProgramInfo.Rows[0];
 
-            string smainSql1 = drProgramInfo["fSql"] + "";
+            string smainSql1 = $"select * from (\r\n {drProgramInfo["fSql"] + ""}\r\n)t1 where 1=1";
             DataTable dtMain = DBHelper.GetDataTable(smainSql1);
 
             dtMain.TableName = drProgramInfo["fTable"] + "";

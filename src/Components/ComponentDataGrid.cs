@@ -31,6 +31,9 @@ namespace AGW.Base.Components
         /// </summary>
         public ComponentToolbar Toolbar { get; private set; }
 
+
+        public ComponentTree Tree { get; set; }
+
         /// <summary>
         /// 下一级容器数量
         /// </summary>
@@ -94,5 +97,11 @@ namespace AGW.Base.Components
         {
             TabPage = tabPage;
         }
+
+        public void BindingTree(ComponentTree tree)
+        {
+            Tree = tree;
+        }
+
     }
 }
