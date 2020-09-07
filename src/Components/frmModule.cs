@@ -1,74 +1,195 @@
-﻿using AGW.Base.Helper;
+﻿using AGW.Base.Extensions;
+using AGW.Base.Helper;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net.Configuration;
 using System.Windows.Forms;
 
 namespace AGW.Base.Components
 {
+    /// <summary>
+    /// 字段显示模板窗体
+    /// </summary>
     public partial class frmModule : FrmBase
     {
-        public frmModule(ComponentDataGrid grid, bool Edit = false)
+        /// <summary>
+        /// 字段显示模板窗体
+        /// </summary>
+        /// <param name="Grid">数据容器</param>
+        /// <param name="Edit">是否为编辑模式</param>
+        public frmModule(ComponentDataGrid Grid, bool Edit = false)
         {
             InitializeComponent();
 
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            ShowInTaskbar = false;
-            MaximizeBox = false;
-            MinimizeBox = false;
-            StartPosition = FormStartPosition.CenterScreen;
-            _mbEdit = Edit;
+            this.ShowInTaskbar = false;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.StartPosition = FormStartPosition.CenterScreen;
 
-            _mdataRow = grid.SelectedRows.Count > 0
-                ? grid.SelectedRows[0]
+            _mbEdit = Edit;
+            _mGrid = Grid;
+
+            //数据选择行
+            _mDataRow = Grid.SelectedRows.Count > 0
+                ? Grid.SelectedRows[0]
                 : null;
 
+            //控件排列方式
             flowLayout.FlowDirection = FlowDirection.TopDown;
-            _mgrid = grid;
 
             this.btnOK.Click += BtnOK_Click;
             this.btnCancel.Click += BtnCancel_Click;
 
             if (_mbEdit)
-            {
-                this.Text = grid.TabPage.Text + "---编辑";
-            }
+                this.Text = Grid.TabPage.Text + "---编辑";
             else
+                this.Text = Grid.TabPage.Text + "---浏览";
+        }
+
+        /// <summary>
+        /// 编辑模式
+        /// </summary>
+        private bool _mbEdit = false;
+
+        /// <summary>
+        /// 数据容器
+        /// </summary>
+        private ComponentDataGrid _mGrid = null;
+
+        /// <summary>
+        /// 当前数据行
+        /// </summary>
+        private DataGridViewRow _mDataRow = null;
+
+        /// <summary>
+        /// 刷新方法
+        /// </summary>
+        public Action<object, EventArgs> atRefresh = null;
+
+
+        /// <summary>
+        /// 初始化数据
+        /// </summary>
+        public void InitializeData()
+        {
+            try
             {
-                this.Text = grid.TabPage.Text + "---新增";
+                this.Height = this.PanelBtnOKCancel.Height;
+
+                string[] ParentKeysValues = _mGrid.ParentKeyValues;
+                string[] ChildKeys = _mGrid.PrimaryKey;
+
+
+                int itenWidth = 0;
+
+                foreach (DataGridViewColumn col in _mGrid.Columns)
+                {
+                    ComponentLableAndControl lableAndControl = new ComponentLableAndControl();
+                    lableAndControl.SetDisplayName(col.HeaderText);
+
+                    ColumnInfo ColInfo = col.Tag as ColumnInfo;
+
+                    Control ctrl = null;
+                    if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
+                    {
+                        ctrl = new CheckBox() { Name = col.DataPropertyName, Dock = DockStyle.Right };
+                    }
+                    else
+                    {
+                        ctrl = new TextBox() { Name = col.DataPropertyName, Dock = DockStyle.Right };
+                        ctrl.Text = ColInfo.DefaultValue;
+                    }
+
+                    if (_mbEdit)
+                    {
+                        if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
+                        {
+                            CheckBox chk = ctrl as CheckBox;
+                            chk.Checked = (bool)_mDataRow.Cells[ctrl.Name].Value;
+                            chk.Enabled = !ColInfo.ReadOnly;
+                        }
+                        else
+                        {
+                            TextBox txt = ctrl as TextBox;
+                            txt.Text = _mDataRow.Cells[ctrl.Name].Value + "";
+                            txt.ReadOnly = ColInfo.ReadOnly;
+                        }
+                    }
+                    else
+                    {
+                        if (ChildKeys != null)
+                        {
+                            for (int i = 0; i < ChildKeys.Length; i++)
+                            {
+                                if (ChildKeys[i].Equals(ctrl.Name, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
+                                    {
+                                        CheckBox chk = ctrl as CheckBox;
+                                        chk.Checked = Convert.ToBoolean(ParentKeysValues[i]);
+                                        chk.Enabled = !ColInfo.ReadOnly;
+                                    }
+                                    else
+                                    {
+                                        TextBox txt = ctrl as TextBox;
+                                        txt.Text = ParentKeysValues[i];
+                                        txt.ReadOnly = ColInfo.ReadOnly;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    lableAndControl.AddControl(ctrl);
+
+                    lableAndControl.Visible = ColInfo.Visible;
+
+                    flowLayout.Controls.Add(lableAndControl);
+                    this.Height += lableAndControl.Height * 2;
+                    itenWidth = lableAndControl.Width;
+                }
+                this.Width = itenWidth + 50;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.StackTrace);
             }
         }
 
-        private bool _mbEdit = false;
-
-        private DataGridViewRow _mdataRow = null;
-
-        public Action<object, EventArgs> atRefresh = null;
-
-        void BtnOK_Click(object sender, EventArgs e)
+        /// <summary>
+        /// 按钮确定
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnOK_Click(object sender, EventArgs e)
         {
-            DataTable dt = _mgrid.DataSource as DataTable;
-            string sTableName = dt.TableName;
-
-            var reader = DBHelper.GetDataReader($"select top(1) * from {sTableName} with(nolock)");
-
-            DataTable Schema = reader.GetSchemaTable();
-            string sFid = Schema.Rows[0].Field<string>("ColumnName");
-
-            var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
-            var lcfind = lc.Where(x => x.Controls[sFid] != null).FirstOrDefault();
-            Control ctrl = lcfind.Controls[sFid];
-
-            Schema.Rows.Remove(Schema.Rows[0]);
-
-            string sql = string.Empty;
-
-            if (_mbEdit)
+            try
             {
-                int iFid = Convert.ToInt32(ctrl.Text);
-                sql = $@"
+                var dt = _mGrid.GetDataTable();
+                string sTableName = dt.TableName;
+
+                var reader = DBHelper.GetDataReader($"select top(1) * from {sTableName} with(nolock)");
+
+                DataTable Schema = reader.GetSchemaTable();
+
+                string sFid = Schema.Rows[0].Field<string>("ColumnName");
+
+                var lc = flowLayout.Controls.OfType<ComponentLableAndControl>();
+
+                var lcfind = lc.Where(x => x.Controls[sFid] != null).FirstOrDefault();
+                Control ctrl = lcfind.Controls[sFid];
+
+                Schema.Rows.Remove(Schema.Rows[0]);
+
+                string sql = string.Empty;
+
+                if (_mbEdit)
+                {
+                    int iFid = Convert.ToInt32(ctrl.Text);
+                    sql = $@"
 if  not exists(select 1 from {sTableName} where {sFid}={iFid})
 begin
  insert into { sTableName} ({ GetFields(Schema)}) values({ GetFields(Schema, true)})
@@ -80,23 +201,28 @@ set {GetFields(Schema, true, true)}
 where {sFid}={iFid}
 end
 ";
+                }
+                else
+                {
+                    sql = $@"insert into {sTableName}({GetFields(Schema)}) values({GetFields(Schema, true)})";
+                }
+
+                DBHelper.RunSql(sql);
+
+                if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
+                {
+                    SpecialHandleDataSourceProgram();
+                }
+
+                atRefresh?.Invoke(_mGrid.Toolbar, null);
+
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
-            else
+            catch (Exception ex)
             {
-                sql = $@"insert into {sTableName}({GetFields(Schema)}) values({GetFields(Schema, true)})";
+                MessageBox.Show(ex.StackTrace);
             }
-
-            DBHelper.RunSql(sql);
-
-            if (sTableName.Equals("t_program", StringComparison.OrdinalIgnoreCase))
-            {
-                SpecialHandleDataSourceProgram();
-            }
-
-            atRefresh?.Invoke(_mgrid.Toolbar, null);
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
 
             string GetFields(DataTable collection, bool bGetValue = false, bool bEdit = false)
             {
@@ -183,89 +309,6 @@ end
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
-        }
-
-        private ComponentDataGrid _mgrid = null;
-
-        public void Initialize()
-        {
-            int ibottomHeight = this.panelBtn.Height;
-            this.Height = ibottomHeight;
-
-            string[] KeysValues = _mgrid.ParentKeyValues;
-
-            string[] ChildKeys = _mgrid.PrimaryKey;
-
-
-            int itenWidth = 0;
-            foreach (DataGridViewColumn col in _mgrid.Columns)
-            {
-                ComponentLableAndControl lableAndControl = new ComponentLableAndControl();
-                lableAndControl.Controls.Add(new Label() { Text = col.HeaderText, TextAlign = ContentAlignment.MiddleRight, Dock = DockStyle.Left });
-
-                ColumnInfo colinfo = col.Tag as ColumnInfo;
-
-
-                Control ctrl = null;
-                if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
-                {
-                    ctrl = new CheckBox() { Name = col.DataPropertyName, Dock = DockStyle.Right };
-                }
-                else
-                {
-                    ctrl = new TextBox() { Name = col.DataPropertyName, Dock = DockStyle.Right };
-                    ctrl.Text = colinfo.DefaultValue;
-                }
-
-                if (_mbEdit)
-                {
-                    if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
-                    {
-                        CheckBox chk = ctrl as CheckBox;
-                        chk.Checked = (bool)_mdataRow.Cells[ctrl.Name].Value;
-                        chk.Enabled = !colinfo.ReadOnly;
-                    }
-                    else
-                    {
-                        TextBox txt = ctrl as TextBox;
-                        txt.Text = _mdataRow.Cells[ctrl.Name].Value + "";
-                        txt.ReadOnly = colinfo.ReadOnly;
-                    }
-                }
-                else
-                {
-                    if (ChildKeys != null)
-                    {
-                        for (int i = 0; i < ChildKeys.Length; i++)
-                        {
-                            if (ChildKeys[i].Equals(ctrl.Name, StringComparison.OrdinalIgnoreCase))
-                            {
-                                if (col.CellType.Equals(typeof(DataGridViewCheckBoxCell)))
-                                {
-                                    CheckBox chk = ctrl as CheckBox;
-                                    chk.Checked = Convert.ToBoolean(KeysValues[i]);
-                                    chk.Enabled = !colinfo.ReadOnly;
-                                }
-                                else
-                                {
-                                    TextBox txt = ctrl as TextBox;
-                                    txt.Text = KeysValues[i];
-                                    txt.ReadOnly = colinfo.ReadOnly;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                lableAndControl.Controls.Add(ctrl);
-
-                lableAndControl.Visible = colinfo.Visible;
-
-                flowLayout.Controls.Add(lableAndControl);
-                this.Height += lableAndControl.Height * 2;
-                itenWidth = lableAndControl.Width;
-            }
-            this.Width = itenWidth + 50;
         }
     }
 }

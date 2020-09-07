@@ -29,10 +29,10 @@
         private void InitializeComponent()
         {
             this.flowLayout = new System.Windows.Forms.FlowLayoutPanel();
-            this.panelBtn = new System.Windows.Forms.Panel();
-            this.btnOK = new System.Windows.Forms.Button();
+            this.PanelBtnOKCancel = new System.Windows.Forms.Panel();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.panelBtn.SuspendLayout();
+            this.btnOK = new System.Windows.Forms.Button();
+            this.PanelBtnOKCancel.SuspendLayout();
             this.SuspendLayout();
             // 
             // flowLayout
@@ -43,25 +43,15 @@
             this.flowLayout.Size = new System.Drawing.Size(478, 412);
             this.flowLayout.TabIndex = 0;
             // 
-            // panelBtn
+            // PanelBtnOKCancel
             // 
-            this.panelBtn.Controls.Add(this.btnCancel);
-            this.panelBtn.Controls.Add(this.btnOK);
-            this.panelBtn.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelBtn.Location = new System.Drawing.Point(0, 412);
-            this.panelBtn.Name = "panelBtn";
-            this.panelBtn.Size = new System.Drawing.Size(478, 33);
-            this.panelBtn.TabIndex = 1;
-            // 
-            // btnOK
-            // 
-            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnOK.Location = new System.Drawing.Point(303, 5);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(75, 23);
-            this.btnOK.TabIndex = 0;
-            this.btnOK.Text = "确定(&O)";
-            this.btnOK.UseVisualStyleBackColor = true;
+            this.PanelBtnOKCancel.Controls.Add(this.btnCancel);
+            this.PanelBtnOKCancel.Controls.Add(this.btnOK);
+            this.PanelBtnOKCancel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.PanelBtnOKCancel.Location = new System.Drawing.Point(0, 412);
+            this.PanelBtnOKCancel.Name = "PanelBtnOKCancel";
+            this.PanelBtnOKCancel.Size = new System.Drawing.Size(478, 33);
+            this.PanelBtnOKCancel.TabIndex = 1;
             // 
             // btnCancel
             // 
@@ -73,16 +63,27 @@
             this.btnCancel.Text = "取消(&C)";
             this.btnCancel.UseVisualStyleBackColor = true;
             // 
+            // btnOK
+            // 
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnOK.Location = new System.Drawing.Point(303, 5);
+            this.btnOK.Name = "btnOK";
+            this.btnOK.Size = new System.Drawing.Size(75, 23);
+            this.btnOK.TabIndex = 0;
+            this.btnOK.Text = "确定(&O)";
+            this.btnOK.UseVisualStyleBackColor = true;
+            // 
             // frmModule
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(478, 445);
             this.Controls.Add(this.flowLayout);
-            this.Controls.Add(this.panelBtn);
+            this.Controls.Add(this.PanelBtnOKCancel);
             this.Name = "frmModule";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "frmModule";
-            this.panelBtn.ResumeLayout(false);
+            this.PanelBtnOKCancel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -90,7 +91,7 @@
         #endregion
 
         private System.Windows.Forms.FlowLayoutPanel flowLayout;
-        private System.Windows.Forms.Panel panelBtn;
+        private System.Windows.Forms.Panel PanelBtnOKCancel;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOK;
     }

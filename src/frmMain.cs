@@ -15,6 +15,7 @@ namespace AGW.Main
         public frmMain()
         {
             InitializeComponent();
+            webBrowser1.Navigate("http://baidu.com");
         }
 
         protected override void OnLoad(EventArgs e)
@@ -52,6 +53,7 @@ namespace AGW.Main
             string sSql = @"SELECT * FROM t_Navigation with(nolock) ";
             DataTable dt = DBHelper.GetDataTable(sSql);
 
+            MainNavBar.PaintStyleKind = NavBarViewKind.NavigationPane;
             MainNavBar.Groups.Clear();
 
             //导航栏

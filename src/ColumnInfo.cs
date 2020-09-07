@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AGW.Base
+﻿namespace AGW.Base
 {
+    /// <summary>
+    /// 列信息
+    /// </summary>
     public class ColumnInfo
     {
         public string ColumnName { get; internal set; }

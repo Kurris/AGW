@@ -19,10 +19,10 @@ namespace AGW.Base
 
         protected override void OnLoad(EventArgs e)
         {
-            if (this.Name.Equals("frmMain", StringComparison.OrdinalIgnoreCase))
-            {
-                this.WindowState = FormWindowState.Maximized;
-            }
+            //if (this.Name.Equals("frmMain", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    this.WindowState = FormWindowState.Maximized;
+            //}
 
             this.BackColor = Color.White;
             this.StartPosition = FormStartPosition.CenterParent;

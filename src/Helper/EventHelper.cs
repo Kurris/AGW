@@ -381,7 +381,7 @@ namespace AGW.Base.Helper
             }
             frmModule form = new frmModule(grid, true);
             form.atRefresh = RefreshClick;
-            form.Initialize();
+            form.InitializeData();
             form.ShowDialog();
         }
 
@@ -445,7 +445,7 @@ namespace AGW.Base.Helper
 
             frmModule form = new frmModule(grid);
             form.atRefresh = RefreshClick;
-            form.Initialize();
+            form.InitializeData();
             form.ShowDialog();
         }
 

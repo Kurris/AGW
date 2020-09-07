@@ -3,18 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
-/* function: Global  parameter
- * Date:2020 06 12
- * Creator:  ligy  
- *
- * Data                                     Modifier                                    Details
- * 
- * 
- *
- *************************************************************************************************************************/
-
 namespace AGW.Base
 {
+    /// <summary>
+    /// 全局帮助类
+    /// </summary>
     public class GlobalInvariant
     {
         /// <summary>
@@ -120,6 +113,9 @@ namespace AGW.Base
         }
 
 
+        /// <summary>
+        /// 用户信息
+        /// </summary>
         public static UserInfo UserInfo { get; internal set; }
     }
 }
