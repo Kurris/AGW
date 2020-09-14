@@ -3,9 +3,7 @@ using AGW.Base.Helper;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Net.Configuration;
 using System.Windows.Forms;
 
 namespace AGW.Base.Components
@@ -44,9 +42,9 @@ namespace AGW.Base.Components
             this.btnCancel.Click += BtnCancel_Click;
 
             if (_mbEdit)
-                this.Text = Grid.TabPage.Text + "---编辑";
+                this.Text = Grid.Page.Text + "---编辑";
             else
-                this.Text = Grid.TabPage.Text + "---浏览";
+                this.Text = Grid.Page.Text + "---浏览";
         }
 
         /// <summary>
@@ -79,7 +77,7 @@ namespace AGW.Base.Components
             {
                 this.Height = this.PanelBtnOKCancel.Height;
 
-                string[] ParentKeysValues = _mGrid.ParentKeyValues;
+                string[] ParentKeysValues = _mGrid.PrePrimaryKeyValues;
                 string[] ChildKeys = _mGrid.PrimaryKey;
 
 
@@ -214,7 +212,7 @@ end
                     SpecialHandleDataSourceProgram();
                 }
 
-                atRefresh?.Invoke(_mGrid.Toolbar, null);
+                atRefresh?.Invoke(_mGrid.ToolBar, null);
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();

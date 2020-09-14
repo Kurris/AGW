@@ -10,25 +10,38 @@ using System.Windows.Forms;
 
 namespace AGW.Main
 {
+    /// <summary>
+    /// 主窗体
+    /// </summary>
     public partial class frmMain : FrmBase
     {
+        /// <summary>
+        /// 主窗体
+        /// </summary>
         public frmMain()
         {
             InitializeComponent();
-            webBrowser1.Navigate("http://baidu.com");
+
+            this.Load += FrmMain_Load;
         }
 
-        protected override void OnLoad(EventArgs e)
+        /// <summary>
+        /// 窗体加载
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FrmMain_Load(object sender, EventArgs e)
         {
-            base.OnLoad(e);
-
             InitNavbar();
 
             MainTab.DoubleClick += MainTab_DoubleClick;
         }
 
-        #region TabPage关闭
-
+        /// <summary>
+        /// 双击标题打开
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainTab_DoubleClick(object sender, EventArgs e)
         {
             if (MainTab.SelectedTab.Name.Equals("pagehome", StringComparison.OrdinalIgnoreCase)) return;
@@ -41,14 +54,10 @@ namespace AGW.Main
         }
 
 
-        #endregion
-
-        #region 导航栏初始化
-
         /// <summary>
         /// 初始化导航栏
         /// </summary>
-        void InitNavbar()
+        private void InitNavbar()
         {
             string sSql = @"SELECT * FROM t_Navigation with(nolock) ";
             DataTable dt = DBHelper.GetDataTable(sSql);
@@ -112,9 +121,8 @@ namespace AGW.Main
                 treeview.ExpandAll();
             }
         }
-        #endregion
 
-        #region 窗体打开
+
 
         /// <summary>
         /// 双击导航栏树节点
@@ -142,13 +150,15 @@ namespace AGW.Main
             MainTab.TabPages.Add(page);
             MainTab.SelectedTab = page;
 
-            InitMainForm(sSourceText, sSourceName);
+            InitForm(sSourceName);
         }
 
-        #endregion
 
-
-        private void InitMainForm(string SourceTxt, string SourceFormName)
+        /// <summary>
+        /// 初始化窗体
+        /// </summary>
+        /// <param name="SourceFormName">窗体Name</param>
+        private void InitForm(string SourceFormName)
         {
             string smainSql = $@"select * from t_program where fname ='{SourceFormName}'";
             DataTable dtProgramInfo = DBHelper.GetDataTable(smainSql);
@@ -250,11 +260,11 @@ namespace AGW.Main
                     ComponentDataGrid childGrid = tmpMain.InitializeNewTabPage(drProgramInfo["fcnname"] + "", drProgramInfo["fname"] + "", dtMain);
 
                     var Keys = GetPrimary(dr);
-                    childGrid.ParentDataGrid = parentGrid;
+                    childGrid.PreGrid = parentGrid;
                     childGrid.PrimaryKey = Keys.ChildKeys;
-                    childGrid.ParentPrimaryKey = Keys.ParentKeys;
+                    childGrid.PrePrimaryKey = Keys.ParentKeys;
 
-                    parentGrid.AddChildDataGrid(childGrid);
+                    parentGrid.AddNextGrid(childGrid);
 
                 }
             }
@@ -278,11 +288,11 @@ namespace AGW.Main
                 MainTab.SelectedTab.Controls.Add(tmpMain);
                 tmpMain.BringToFront();
 
-                childGrid.ParentDataGrid = parentGrid;
+                childGrid.PreGrid = parentGrid;
                 childGrid.PrimaryKey = Keys.ChildKeys;
-                childGrid.ParentPrimaryKey = Keys.ParentKeys;
+                childGrid.PrePrimaryKey = Keys.ParentKeys;
 
-                parentGrid.AddChildDataGrid(childGrid);
+                parentGrid.AddNextGrid(childGrid);
 
                 DataRow[] drNeedRecursive = dtRelation.Select($"ffathername='{drProgramInfo["fname"] + ""}'");
 

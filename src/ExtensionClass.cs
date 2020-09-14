@@ -23,5 +23,61 @@ namespace AGW.Base.Extensions
         {
             return Grid.DataSource as DataTable;
         }
+
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <typeparam name="T">类型</typeparam>
+        /// <param name="TVal">值</param>
+        /// <returns><see cref="string"/></returns>
+        public static string TypeToStr<T>(this T TVal)
+        {
+            if (TVal == null || TVal is DBNull)
+            {
+                return string.Empty;
+            }
+
+            return TVal.ToString();
+        }
+
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <typeparam name="T">类型</typeparam>
+        /// <param name="TVal">值</param>
+        /// <returns><see cref="int"/></returns>
+        public static int TypeToInt<T>(this T TVal)
+        {
+            if (TVal == null || TVal is DBNull)
+            {
+                return -1;
+            }
+
+            if (int.TryParse(TypeToStr(TVal), out int Result))
+            {
+                return Result;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <typeparam name="T">类型</typeparam>
+        /// <param name="TVal">值</param>
+        /// <returns><see cref="bool"/></returns>
+        public static bool TypeToBoolean<T>(this T TVal)
+        {
+            if (TVal == null || TVal is DBNull)
+            {
+                return false;
+            }
+
+            if (bool.TryParse(TypeToStr(TVal), out bool Result))
+            {
+                return Result;
+            }
+            return false;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AGW.Base.Components;
 using System;
+using static AGW.Base.GlobalInvariant;
 
 namespace AGW.Base.Plugins
 {
@@ -24,14 +25,14 @@ namespace AGW.Base.Plugins
         /// <summary>
         /// User Info
         /// </summary>
-        public UserInfo UserInfo { get; internal set; }
+        public UserInfo User { get; internal set; }
 
 
         internal Action<object, EventArgs> RefreshDataGrid { private get; set; }
 
         public virtual void RefreshGrid()
         {
-            RefreshDataGrid.Invoke(DataGrid.Toolbar, null);
+            RefreshDataGrid.Invoke(DataGrid.ToolBar, null);
         }
     }
 }

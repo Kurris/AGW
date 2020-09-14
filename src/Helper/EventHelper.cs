@@ -104,7 +104,7 @@ namespace AGW.Base.Helper
             }
             dt.Namespace = Sql;
 
-            RefreshClick(Tree.DataGrid.Toolbar, null);
+            RefreshClick(Tree.DataGrid.ToolBar, null);
         }
 
         private void CommonRowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
@@ -148,7 +148,7 @@ namespace AGW.Base.Helper
 
             if (e == null)
             {
-                ToolbarAddEvent(dataGrid.Toolbar);
+                ToolbarAddEvent(dataGrid.ToolBar);
             }
 
             if (dataGrid == null) throw new ArgumentNullException("当前容器为空");
@@ -178,13 +178,13 @@ namespace AGW.Base.Helper
             foreach (ComponentDataGrid grid in childrenGrid)
             {
                 string[] childKeys = grid.PrimaryKey;
-                string[] parentKeys = grid.ParentPrimaryKey;
+                string[] parentKeys = grid.PrePrimaryKey;
                 string swherestring = GetWhereString(row, parentKeys, childKeys);
 
-                grid.ParentKeyValues = new string[parentKeys.Length];
+                grid.PrePrimaryKeyValues = new string[parentKeys.Length];
                 for (int i = 0; i < parentKeys.Length; i++)
                 {
-                    grid.ParentKeyValues[i] = row.Cells[parentKeys[i]].Value + "";
+                    grid.PrePrimaryKeyValues[i] = row.Cells[parentKeys[i]].Value + "";
                 }
 
                 int iindex = (grid.DataSource as DataTable).Namespace.LastIndexOf("where", StringComparison.OrdinalIgnoreCase);

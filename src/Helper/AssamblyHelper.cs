@@ -4,16 +4,6 @@ using System;
 using System.Reflection;
 using System.Windows.Forms;
 
-/* function: AssamblyHelper
- * Date:2020 06 12
- * Creator:  ligy  
- *
- * Data                                     Modifier                                    Details
- * 
- * 
- *
- *************************************************************************************************************************/
-
 namespace AGW.Base.Helper
 {
     public class AssamblyHelper
@@ -44,7 +34,7 @@ namespace AGW.Base.Helper
 
                 ComponentToolBarPlugins abPlugin = obj as ComponentToolBarPlugins;
                 abPlugin.DataGrid = toolbar.DataGrid;
-                abPlugin.UserInfo = GlobalInvariant.UserInfo;
+                abPlugin.User = GlobalInvariant.User;
                 abPlugin.RefreshDataGrid = Refresh;
 
                 abPlugin.OnActivated();

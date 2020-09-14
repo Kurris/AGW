@@ -35,7 +35,6 @@
             this.navBarGroup1 = new DevExpress.XtraNavBar.NavBarGroup();
             this.MainTab = new System.Windows.Forms.TabControl();
             this.pageHome = new System.Windows.Forms.TabPage();
-            this.webBrowser2 = new System.Windows.Forms.WebBrowser();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerControl1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerControl1.Panel1)).BeginInit();
@@ -120,7 +119,6 @@
             // 
             // pageHome
             // 
-            this.pageHome.Controls.Add(this.webBrowser2);
             this.pageHome.Controls.Add(this.webBrowser1);
             this.pageHome.Location = new System.Drawing.Point(4, 23);
             this.pageHome.Name = "pageHome";
@@ -129,15 +127,6 @@
             this.pageHome.TabIndex = 0;
             this.pageHome.Text = "首页";
             this.pageHome.UseVisualStyleBackColor = true;
-            // 
-            // webBrowser2
-            // 
-            this.webBrowser2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webBrowser2.Location = new System.Drawing.Point(3, 3);
-            this.webBrowser2.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser2.Name = "webBrowser2";
-            this.webBrowser2.Size = new System.Drawing.Size(1136, 613);
-            this.webBrowser2.TabIndex = 1;
             // 
             // webBrowser1
             // 
@@ -179,7 +168,6 @@
         private DevExpress.XtraNavBar.NavBarGroup navBarGroup1;
         private System.Windows.Forms.TabControl MainTab;
         private System.Windows.Forms.TabPage pageHome;
-        private System.Windows.Forms.WebBrowser webBrowser2;
         private System.Windows.Forms.WebBrowser webBrowser1;
     }
 }

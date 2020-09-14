@@ -16,28 +16,32 @@ namespace AGW.Base.Components
         /// <summary>
         /// 上一级容器
         /// </summary>
-        public ComponentDataGrid ParentDataGrid { get; set; }
+        public ComponentDataGrid PreGrid { get; set; }
 
         /// <summary>
         /// 下一级容器
         /// </summary>
-        private List<ComponentDataGrid> _mchildrenDataGrid = new List<ComponentDataGrid>();
+        private readonly List<ComponentDataGrid> _mNextGrids = new List<ComponentDataGrid>();
 
-
-        public TabPage TabPage { get; private set; }
+        /// <summary>
+        /// 当前页面
+        /// </summary>
+        public TabPage Page { get; private set; }
 
         /// <summary>
         /// 工具栏
         /// </summary>
-        public ComponentToolbar Toolbar { get; private set; }
+        public ComponentToolbar ToolBar { get; private set; }
 
-
+        /// <summary>
+        /// 树
+        /// </summary>
         public ComponentTree Tree { get; set; }
 
         /// <summary>
         /// 下一级容器数量
         /// </summary>
-        public int ChildrenCount { get => _mchildrenDataGrid.Count; }
+        public int ChildrenCount { get => _mNextGrids.Count; }
 
         /// <summary>
         /// 容器主键
@@ -47,61 +51,54 @@ namespace AGW.Base.Components
         /// <summary>
         /// 上一级容器主键
         /// </summary>
-        public string[] ParentPrimaryKey { get; set; }
+        public string[] PrePrimaryKey { get; set; }
 
         /// <summary>
         /// 上一级容器主键值
         /// </summary>
-        public string[] ParentKeyValues { get; set; }
+        public string[] PrePrimaryKeyValues { get; set; }
 
         /// <summary>
         /// 添加下一级容器
         /// </summary>
         /// <param name="dataGrid">容器</param>
-        public void AddChildDataGrid(ComponentDataGrid dataGrid)
+        public void AddNextGrid(ComponentDataGrid Grid)
         {
-            bool bExists = _mchildrenDataGrid.Any(x => x.Name.Equals(dataGrid.Name, StringComparison.OrdinalIgnoreCase));
+            bool bExists = _mNextGrids.Any(x => x.Name.Equals(Grid.Name, StringComparison.OrdinalIgnoreCase));
             if (bExists)
             {
-                throw new ArgumentException($"Name:{dataGrid.Name} 已经存在!");
+                throw new ArgumentException($"Name:{Grid.Name} 已经存在!");
             }
 
-            _mchildrenDataGrid.Add(dataGrid);
+            _mNextGrids.Add(Grid);
         }
 
         /// <summary>
         /// 移除匹配项的容器
         /// </summary>
-        /// <param name="nameOfDataGrid">容器Name</param>
+        /// <param name="Name">容器Name</param>
         /// <returns>移除个数</returns>
-        public int RemoveChildDataGrid(string nameOfDataGrid)
+        public int RemoveNextGrid(string Name)
         {
-            return _mchildrenDataGrid.RemoveAll(x => x.Name.Equals(nameOfDataGrid, StringComparison.OrdinalIgnoreCase));
+            return _mNextGrids.RemoveAll(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
         }
-
-        /// <summary>
-        /// 获取下一级容i去
-        /// </summary>
-        /// <returns>容器</returns>
-        public List<ComponentDataGrid> GetChildrenDataGrid() => _mchildrenDataGrid;
 
         /// <summary>
         /// 组件绑定工具栏
         /// </summary>
-        /// <param name="toolbar">工具栏</param>
-        public void BindingToolbar(ComponentToolbar toolbar)
-        {
-            Toolbar = toolbar;
-        }
-        public void BindingTabPage(TabPage tabPage)
-        {
-            TabPage = tabPage;
-        }
+        /// <param name="ToolBar">工具栏</param>
+        public void BindingToolBar(ComponentToolbar ToolBar) => this.ToolBar = ToolBar;
 
-        public void BindingTree(ComponentTree tree)
-        {
-            Tree = tree;
-        }
+        /// <summary>
+        /// 组件绑定当前页面
+        /// </summary>
+        /// <param name="tabPage"></param>
+        public void BindingTabPage(TabPage Page) => this.Page = Page;
 
+        /// <summary>
+        /// 绑定树
+        /// </summary>
+        /// <param name="tree"></param>
+        public void BindingTree(ComponentTree Tree) => this.Tree = Tree;
     }
 }
