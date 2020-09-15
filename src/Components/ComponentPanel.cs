@@ -13,7 +13,10 @@ namespace AGW.Base.Components
     [ToolboxItem(false)]
     public class ComponentPanel : Panel
     {
-
+        /// <summary>
+        /// 基础面板Ctor
+        /// </summary>
+        /// <param name="Main"></param>
         public ComponentPanel(bool Main = false)
         {
             _mbMain = Main;
@@ -24,35 +27,47 @@ namespace AGW.Base.Components
             this.Controls.Add(TabCtrl);
         }
 
-        public ComponentTree Tree { get; private set; }
-
-        public TabControl TabCtrl { get; private set; }
-
+        /// <summary>
+        /// 是否为主(第一个)
+        /// </summary>
         private bool _mbMain = false;
 
         /// <summary>
-        /// 创建
+        /// 当前面板的树
+        /// </summary>
+        public ComponentTree Tree { get; private set; }
+
+        /// <summary>
+        /// 当前面板的TabControl
+        /// </summary>
+        public TabControl TabCtrl { get; private set; }
+
+
+
+        /// <summary>
+        /// 初始化一个新Page
         /// </summary>
         /// <param name="Title">标题</param>
-        /// <param name="name">key名称</param>
-        /// <param name="gridData">加载的数据</param>
-        public ComponentDataGrid InitializeNewTabPage(string Title, string name, DataTable gridData)
+        /// <param name="Name">key名称</param>
+        /// <param name="Grid">加载的数据</param>
+        public ComponentDataGrid InitializeNewTabPage(string Title, string Name, DataTable Grid)
         {
-            if (TabCtrl.TabPages.ContainsKey(name))
+            //如果存在相同名称Page
+            if (TabCtrl.TabPages.ContainsKey(Name))
             {
-                ComponentDataGrid finGrid = TabCtrl.TabPages[name].Controls.OfType<ComponentDataGrid>().FirstOrDefault();
-                finGrid.DataSource = gridData;
+                ComponentDataGrid finGrid = TabCtrl.TabPages[Name].Controls.OfType<ComponentDataGrid>().FirstOrDefault();
+                finGrid.DataSource = Grid;
                 return finGrid;
             }
 
-            TabPage page = ControlsHelper.NewPage(Title, name);
+            TabPage page = ControlsHelper.NewPage(Title, Name);
             TabCtrl.TabPages.Add(page);
 
-            ComponentToolbar toolstrip = ControlsHelper.NewToolStrip(name);
+            ComponentToolbar toolstrip = ControlsHelper.NewToolStrip(Name);
             page.Controls.Add(toolstrip);
             toolstrip.BringToFront();
 
-            DataTable dtColInfo = DBHelper.GetDataTable($@"select * from T_InterfaceColums where fInterfacename='{name}'");
+            DataTable dtColInfo = DBHelper.GetDataTable($@"select * from T_InterfaceColums where fInterfacename='{Name}'");
 
             bool bgenTree = false;
 
@@ -72,7 +87,7 @@ namespace AGW.Base.Components
                     Tree.Dock = DockStyle.Left;
                     page.Controls.Add(Tree);
 
-                    ControlsHelper.HandleTree(Tree, rows, gridData);
+                    ControlsHelper.CreateTree(Tree, rows, Grid);
 
                     EventHelper helper = new EventHelper();
                     helper.BindingTreeNodeOnClick(Tree);
@@ -88,17 +103,17 @@ namespace AGW.Base.Components
                 }
             }
 
-            //没有树结构
-            NoTreeGeneral:
+        //没有树结构
+        NoTreeGeneral:
 
 
-            ComponentDataGrid dgv = ControlsHelper.NewDataGrid(gridData, dtColInfo);
-            dgv.Name = name;
+            ComponentDataGrid dgv = ControlsHelper.NewDataGrid(Grid, dtColInfo);
+            dgv.Name = Name;
             page.Controls.Add(dgv);
             dgv.Dock = DockStyle.Fill;
             dgv.BringToFront();
 
-            dgv.BindingToolbar(toolstrip);
+            dgv.BindingToolBar(toolstrip);
             dgv.BindingTabPage(page);
 
             toolstrip.BindingDataGrid(dgv);

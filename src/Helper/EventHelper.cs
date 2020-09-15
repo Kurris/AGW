@@ -153,7 +153,7 @@ namespace AGW.Base.Helper
 
             if (dataGrid == null) throw new ArgumentNullException("当前容器为空");
 
-            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenDataGrid();
+            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenGrid();
 
 
             var rows = dataGrid.SelectedRows;
@@ -270,7 +270,7 @@ namespace AGW.Base.Helper
         /// <param name="dataGrid">Child container</param>
         private void ClearRows(ComponentDataGrid dataGrid)
         {
-            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenDataGrid();
+            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenGrid();
 
             foreach (ComponentDataGrid grid in childrenGrid)
             {

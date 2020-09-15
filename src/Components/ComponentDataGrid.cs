@@ -59,9 +59,15 @@ namespace AGW.Base.Components
         public string[] PrePrimaryKeyValues { get; set; }
 
         /// <summary>
+        /// 获取子数据控件
+        /// </summary>
+        /// <returns></returns>
+        public List<ComponentDataGrid> GetChildrenGrid() => _mNextGrids;
+
+        /// <summary>
         /// 添加下一级容器
         /// </summary>
-        /// <param name="dataGrid">容器</param>
+        /// <param name="Grid">容器</param>
         public void AddNextGrid(ComponentDataGrid Grid)
         {
             bool bExists = _mNextGrids.Any(x => x.Name.Equals(Grid.Name, StringComparison.OrdinalIgnoreCase));
@@ -78,10 +84,7 @@ namespace AGW.Base.Components
         /// </summary>
         /// <param name="Name">容器Name</param>
         /// <returns>移除个数</returns>
-        public int RemoveNextGrid(string Name)
-        {
-            return _mNextGrids.RemoveAll(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
-        }
+        public int RemoveNextGrid(string Name) => _mNextGrids.RemoveAll(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
         /// 组件绑定工具栏
@@ -92,13 +95,13 @@ namespace AGW.Base.Components
         /// <summary>
         /// 组件绑定当前页面
         /// </summary>
-        /// <param name="tabPage"></param>
+        /// <param name="Page"></param>
         public void BindingTabPage(TabPage Page) => this.Page = Page;
 
         /// <summary>
         /// 绑定树
         /// </summary>
-        /// <param name="tree"></param>
+        /// <param name="Tree"></param>
         public void BindingTree(ComponentTree Tree) => this.Tree = Tree;
     }
 }

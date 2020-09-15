@@ -9,16 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
-/* function: ControlsHelper
- * Date:2020 06 12
- * Creator:  ligy  
- *
- * Data                                     Modifier                                    Details
- * 
- * 
- *
- *************************************************************************************************************************/
-
 namespace AGW.Base.Helper
 {
     /// <summary>
@@ -30,14 +20,14 @@ namespace AGW.Base.Helper
         /// 创建一个TabPage
         /// </summary>
         /// <param name="Title">标题</param>
-        /// <param name="name">TabPageName</param>
+        /// <param name="Name">Name</param>
         /// <returns>TabPage</returns>
-        public static TabPage NewPage(string Title, string name)
+        public static TabPage NewPage(string Title, string Name)
         {
             TabPage page = new TabPage()
             {
                 Text = Title,
-                Name = name,
+                Name = Name,
                 BackColor = Color.White
             };
             return page;
@@ -46,9 +36,9 @@ namespace AGW.Base.Helper
         /// <summary>
         /// 创建一个工具栏
         /// </summary>
-        /// <param name="name">工具栏Name,一般是容器数据源</param>
+        /// <param name="Name">工具栏Name,一般是容器数据源</param>
         /// <returns>ComponentToolbar</returns>
-        internal static ComponentToolbar NewToolStrip(string name)
+        internal static ComponentToolbar NewToolStrip(string Name)
         {
             var toolstrip = new ComponentToolbar();
 
@@ -56,7 +46,7 @@ namespace AGW.Base.Helper
 select *
 from t_toolstrip a WITH(NOLOCK)
 LEFT JOIN T_Button b on a.fToolName = b.fBtnName
-where a.fInterFaceName = '{name}'");
+where a.fInterFaceName = '{Name}'");
 
             if (ButtonData == null || ButtonData.Rows.Count == 0) return toolstrip;
 
@@ -67,7 +57,11 @@ where a.fInterFaceName = '{name}'");
             return toolstrip;
         }
 
-
+        /// <summary>
+        /// 对工具栏添加按钮
+        /// </summary>
+        /// <param name="toolstrip"></param>
+        /// <param name="dr"></param>
         private static void AddButton(ComponentToolbar toolstrip, DataRow dr)
         {
 
@@ -95,13 +89,19 @@ where a.fInterFaceName = '{name}'");
             }
         }
 
-        internal static ComponentDataGrid NewDataGrid(DataTable gridData, DataTable gridColInfo)
+        /// <summary>
+        /// 创建一个数据容器
+        /// </summary>
+        /// <param name="Data"></param>
+        /// <param name="DataColumnInfos"></param>
+        /// <returns></returns>
+        internal static ComponentDataGrid NewDataGrid(DataTable Data, DataTable DataColumnInfos)
         {
             var grid = new ComponentDataGrid();
             grid.AutoGenerateColumns = false;
-            grid.DataSource = gridData;
+            grid.DataSource = Data;
 
-            InitStyle(grid, gridColInfo);
+            InitStyle(grid, DataColumnInfos);
 
             return grid;
         }
@@ -137,13 +137,17 @@ where a.fInterFaceName = '{name}'");
                 DataGridViewColumn col = null;
                 if (type.Equals(typeof(bool)))
                 {
-                    col = new DataGridViewCheckBoxColumn();
-                    col.CellTemplate = new DataGridViewCheckBoxCell();
+                    col = new DataGridViewCheckBoxColumn
+                    {
+                        CellTemplate = new DataGridViewCheckBoxCell()
+                    };
                 }
                 else
                 {
-                    col = new DataGridViewTextBoxColumn();
-                    col.CellTemplate = new DataGridViewTextBoxCell();
+                    col = new DataGridViewTextBoxColumn
+                    {
+                        CellTemplate = new DataGridViewTextBoxCell()
+                    };
                 }
 
                 var colinfo = new ColumnInfo()
@@ -181,8 +185,13 @@ where a.fInterFaceName = '{name}'");
             }
         }
 
-
-        public static void HandleTree(TreeView Tree, DataRow[] ColumnInfoData, DataTable GridData)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Tree"></param>
+        /// <param name="ColumnInfoData"></param>
+        /// <param name="GridData"></param>
+        public static void CreateTree(TreeView Tree, DataRow[] ColumnInfoData, DataTable GridData)
         {
             var tor = ColumnInfoData.GetEnumerator();
 
