@@ -1,6 +1,6 @@
 ﻿namespace AGW.Base.Components
 {
-    partial class frmModule
+    partial class FormModule
     {
         /// <summary>
         /// Required designer variable.

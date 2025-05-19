@@ -1,6 +1,6 @@
 ﻿namespace AGW.Main
 {
-    partial class frmLogin
+    partial class FormLogin
     {
         /// <summary>
         /// 必需的设计器变量。

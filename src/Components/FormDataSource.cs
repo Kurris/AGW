@@ -2,9 +2,9 @@
 
 namespace AGW.Base.Components
 {
-    public partial class frmDataSource : FrmBase
+    public partial class FormDataSource : FormBase
     {
-        public frmDataSource(string DataSource, string DataSql)
+        public FormDataSource(string DataSource, string DataSql)
         {
             InitializeComponent();
 

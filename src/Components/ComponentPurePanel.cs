@@ -1,51 +1,22 @@
-﻿
-using System.ComponentModel;
-using System.Data;
+﻿using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using AGW.Base.Helper;
 using Entities;
-using Entities.Model;
 
 namespace AGW.Base.Components
 {
-    /// <summary>
-    /// 基础面板
-    /// </summary>
-    [ToolboxItem(false)]
-    public class ComponentPanel : Panel
+    public class ComponentPurePanel : Panel
     {
         /// <summary>
-        /// 是否为主(第一个)
-        /// </summary>
-        private bool _isMain = false;
-
-        /// <summary>
-        /// 基础面板Ctor
-        /// </summary>
-        /// <param name="isMain"></param>
-        public ComponentPanel(bool isMain = false)
-        {
-            _isMain = isMain;
-
-            Tab = new TabControl
-            {
-                Dock = DockStyle.Fill
-            };
-            Tab.BringToFront();
-            this.Controls.Add(Tab);
-        }
-
-        /// <summary>
-        /// 当前面板的树
+        /// 树
         /// </summary>
         public ComponentTree Tree { get; private set; }
 
         /// <summary>
-        /// 当前面板的TabControl
+        /// 表格
         /// </summary>
-        public TabControl Tab { get; private set; }
-
+        public ComponentDataGrid DataGrid { get; set; }
 
         /// <summary>
         /// 初始化一个新Page
@@ -53,21 +24,10 @@ namespace AGW.Base.Components
         /// <param name="title">标题</param>
         /// <param name="name">key名称</param>
         /// <param name="dt">加载的数据</param>
-        public ComponentDataGrid InitializeNewTabPage(string name, string title, DataTable dt)
+        public ComponentDataGrid InitializeDataGrid(string name, DataTable dt)
         {
-            //如果存在相同名称Page
-            if (Tab.TabPages.ContainsKey(name))
-            {
-                ComponentDataGrid finGrid = Tab.TabPages[name].Controls.OfType<ComponentDataGrid>().FirstOrDefault();
-                finGrid.DataSource = dt;
-                return finGrid;
-            }
-
-            var page = ControlsHelper.NewPage(name, title);
-            Tab.TabPages.Add(page);
-
             var toolstrip = ControlsHelper.NewToolStrip(name);
-            page.Controls.Add(toolstrip);
+            this.Controls.Add(toolstrip);
             toolstrip.BringToFront();
 
             var columns = DBHelper.Db.Queryable<ProgramColumnEntity>().Where(x => x.ProgramNo == name).ToList();
@@ -92,7 +52,7 @@ namespace AGW.Base.Components
 
             var dgv = ControlsHelper.NewDataGrid(name, dt, columns);
 
-            if (_isMain && hasTree)
+            if (hasTree)
             {
                 var rows = columns.Where(x => x.IsTree).ToList();
                 if (hasTree)
@@ -102,7 +62,7 @@ namespace AGW.Base.Components
                         Dock = DockStyle.Left,
                         Width = 200
                     };
-                    page.Controls.Add(Tree);
+                    this.Controls.Add(Tree);
 
                     ControlsHelper.CreateTree(Tree, rows, dt);
 
@@ -113,29 +73,24 @@ namespace AGW.Base.Components
                     Tree.BringToFront();
 
                     Splitter splitter = new Splitter();
-                    page.Controls.Add(splitter);
+                    this.Controls.Add(splitter);
                     splitter.BringToFront();
                     splitter.Dock = DockStyle.Left;
 
                     Tree.BindingDataGrid(dgv);
-                    Tree.BindingTabPage(page);
 
                     dgv.BindingTree(Tree);
 
-                    _isMain = false;
+                    //Tree.SelectedNode = Tree.Nodes[0];
                 }
             }
 
-
-            page.Controls.Add(dgv);
+            this.Controls.Add(dgv);
             dgv.Dock = DockStyle.Fill;
             dgv.BringToFront();
 
             dgv.BindingToolBar(toolstrip);
-            dgv.BindingTabPage(page);
-
             toolstrip.BindingDataGrid(dgv);
-            toolstrip.BindingTabPage(page);
 
             return dgv;
         }

@@ -1,6 +1,6 @@
 ﻿namespace AGW.Main
 {
-    partial class frmMain
+    partial class FormMain
     {
         /// <summary>
         /// Required designer variable.
@@ -46,9 +46,9 @@
             // 
             // MainStatusStrip
             // 
-            this.MainStatusStrip.Location = new System.Drawing.Point(0, 671);
+            this.MainStatusStrip.Location = new System.Drawing.Point(0, 666);
             this.MainStatusStrip.Name = "MainStatusStrip";
-            this.MainStatusStrip.Size = new System.Drawing.Size(1425, 22);
+            this.MainStatusStrip.Size = new System.Drawing.Size(1126, 22);
             this.MainStatusStrip.TabIndex = 0;
             this.MainStatusStrip.Text = "statusStrip1";
             // 
@@ -56,7 +56,7 @@
             // 
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1425, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1126, 25);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -71,7 +71,7 @@
             this.splitContainerControl1.Panel1.Controls.Add(this.MainNavBar);
             this.splitContainerControl1.Panel1.Location = new System.Drawing.Point(0, 0);
             this.splitContainerControl1.Panel1.Name = "";
-            this.splitContainerControl1.Panel1.Size = new System.Drawing.Size(270, 646);
+            this.splitContainerControl1.Panel1.Size = new System.Drawing.Size(270, 641);
             this.splitContainerControl1.Panel1.TabIndex = 0;
             this.splitContainerControl1.Panel1.Text = "Panel1";
             // 
@@ -80,10 +80,10 @@
             this.splitContainerControl1.Panel2.Controls.Add(this.MainTab);
             this.splitContainerControl1.Panel2.Location = new System.Drawing.Point(275, 0);
             this.splitContainerControl1.Panel2.Name = "";
-            this.splitContainerControl1.Panel2.Size = new System.Drawing.Size(1150, 646);
+            this.splitContainerControl1.Panel2.Size = new System.Drawing.Size(851, 641);
             this.splitContainerControl1.Panel2.TabIndex = 1;
             this.splitContainerControl1.Panel2.Text = "Panel2";
-            this.splitContainerControl1.Size = new System.Drawing.Size(1425, 646);
+            this.splitContainerControl1.Size = new System.Drawing.Size(1126, 641);
             this.splitContainerControl1.SplitterPosition = 270;
             this.splitContainerControl1.TabIndex = 2;
             this.splitContainerControl1.Text = "splitContainerControl1";
@@ -97,7 +97,7 @@
             this.MainNavBar.Location = new System.Drawing.Point(0, 0);
             this.MainNavBar.Name = "MainNavBar";
             this.MainNavBar.OptionsNavPane.ExpandedWidth = 270;
-            this.MainNavBar.Size = new System.Drawing.Size(270, 646);
+            this.MainNavBar.Size = new System.Drawing.Size(270, 641);
             this.MainNavBar.TabIndex = 0;
             this.MainNavBar.Text = "navBarControl1";
             // 
@@ -114,7 +114,7 @@
             this.MainTab.Location = new System.Drawing.Point(0, 0);
             this.MainTab.Name = "MainTab";
             this.MainTab.SelectedIndex = 0;
-            this.MainTab.Size = new System.Drawing.Size(1150, 646);
+            this.MainTab.Size = new System.Drawing.Size(851, 641);
             this.MainTab.TabIndex = 0;
             // 
             // pageHome
@@ -123,7 +123,7 @@
             this.pageHome.Location = new System.Drawing.Point(4, 23);
             this.pageHome.Name = "pageHome";
             this.pageHome.Padding = new System.Windows.Forms.Padding(3);
-            this.pageHome.Size = new System.Drawing.Size(1142, 619);
+            this.pageHome.Size = new System.Drawing.Size(843, 614);
             this.pageHome.TabIndex = 0;
             this.pageHome.Text = "首页";
             this.pageHome.UseVisualStyleBackColor = true;
@@ -134,19 +134,18 @@
             this.webBrowser1.Location = new System.Drawing.Point(3, 3);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(1136, 613);
+            this.webBrowser1.Size = new System.Drawing.Size(837, 608);
             this.webBrowser1.TabIndex = 0;
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1425, 693);
+            this.ClientSize = new System.Drawing.Size(1126, 688);
             this.Controls.Add(this.splitContainerControl1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.MainStatusStrip);
             this.Name = "frmMain";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "frmMain";
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerControl1.Panel1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerControl1.Panel2)).EndInit();

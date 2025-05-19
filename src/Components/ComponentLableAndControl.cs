@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows.Forms;
 
 namespace AGW.Base.Components
@@ -32,9 +33,9 @@ namespace AGW.Base.Components
         /// 设置显示名称
         /// </summary>
         /// <param name="Name"></param>
-        public void SetDisplayName(string Name)
+        public void SetDisplayName(string title)
         {
-            DisplayName = Name;
+            DisplayName = title;
         }
 
         /// <summary>
@@ -46,5 +47,7 @@ namespace AGW.Base.Components
             Ctrl.Dock = DockStyle.Left;
             panel1.Controls.Add(Ctrl);
         }
+
+        public ControlCollection GetControls() => panel1.Controls;
     }
 }

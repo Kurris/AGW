@@ -1,6 +1,6 @@
 ﻿namespace AGW.Base.Components
 {
-    partial class frmDataSource
+    partial class FormDataSource
     {
         /// <summary>
         /// Required designer variable.

@@ -1,7 +1,10 @@
 ﻿using AGW.Base.Helper;
+using Entities;
+using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 
 namespace AGW.Base
 {
@@ -38,7 +41,6 @@ namespace AGW.Base
         /// <returns>翻译语言</returns>
         public static string GetLanguageByKey(string Key, bool ReLoad = false)
         {
-            Key = Key.ToLower();
             try
             {
                 if (_mdicLanguage == null)
@@ -66,13 +68,13 @@ namespace AGW.Base
                     switch (Language)
                     {
                         case LanguageType.SimplifiedChinese:
-                            sColName = "fCns";
+                            sColName = "Cns";
                             break;
                         case LanguageType.TraditionalChinese:
-                            sColName = "fCns";//待定
+                            sColName = "Tns";//待定
                             break;
                         case LanguageType.English:
-                            sColName = "fEng";
+                            sColName = "Eng";
                             break;
                         default:
                             break;
@@ -91,14 +93,12 @@ namespace AGW.Base
                         _mdicLanguage = new Dictionary<string, string>(1000);
                     }
 
-                    DataTable dtLanguage = DBHelper.GetDataTable($"select fkey,{sColName} from T_language with(nolock)");
+                    var languages = DBHelper.Db.Queryable<LanguageEntity>().ToList();
 
-                    if (dtLanguage == null) throw new NotImplementedException("Initialize Language Wrong!");
-
-                    foreach (DataRow dr in dtLanguage.Rows)
+                    foreach (var dr in languages)
                     {
-                        string sKey = (dr["fKey"] + "").ToLower();
-                        string sValue = dr[sColName] + "";
+                        string sKey = dr.Key;
+                        string sValue = (string)typeof(LanguageEntity).GetProperties().FirstOrDefault(x => x.Name == sColName).GetValue(dr);
 
                         if (_mdicLanguage.ContainsKey(sKey)) continue;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
+using Entities.Model;
 
 namespace AGW.Base.Components
 {
@@ -12,7 +13,6 @@ namespace AGW.Base.Components
     [ToolboxItem(false)]
     public class ComponentDataGrid : DataGridView
     {
-
         /// <summary>
         /// 上一级容器
         /// </summary>
@@ -21,7 +21,7 @@ namespace AGW.Base.Components
         /// <summary>
         /// 下一级容器
         /// </summary>
-        private readonly List<ComponentDataGrid> _mNextGrids = new List<ComponentDataGrid>();
+        private readonly List<ComponentDataGrid> _next = new List<ComponentDataGrid>();
 
         /// <summary>
         /// 当前页面
@@ -41,7 +41,7 @@ namespace AGW.Base.Components
         /// <summary>
         /// 下一级容器数量
         /// </summary>
-        public int ChildrenCount { get => _mNextGrids.Count; }
+        public int ChildrenCount { get => _next.Count; }
 
         /// <summary>
         /// 容器主键
@@ -62,7 +62,9 @@ namespace AGW.Base.Components
         /// 获取子数据控件
         /// </summary>
         /// <returns></returns>
-        public List<ComponentDataGrid> GetChildrenGrid() => _mNextGrids;
+        public List<ComponentDataGrid> GetChildrenGrids() => _next;
+
+        public List<ProgramColumn> ProgramColumns { get; set; }
 
         /// <summary>
         /// 添加下一级容器
@@ -70,13 +72,13 @@ namespace AGW.Base.Components
         /// <param name="Grid">容器</param>
         public void AddNextGrid(ComponentDataGrid Grid)
         {
-            bool bExists = _mNextGrids.Any(x => x.Name.Equals(Grid.Name, StringComparison.OrdinalIgnoreCase));
+            bool bExists = _next.Any(x => x.Name.Equals(Grid.Name, StringComparison.OrdinalIgnoreCase));
             if (bExists)
             {
                 throw new ArgumentException($"Name:{Grid.Name} 已经存在!");
             }
 
-            _mNextGrids.Add(Grid);
+            _next.Add(Grid);
         }
 
         /// <summary>
@@ -84,7 +86,7 @@ namespace AGW.Base.Components
         /// </summary>
         /// <param name="Name">容器Name</param>
         /// <returns>移除个数</returns>
-        public int RemoveNextGrid(string Name) => _mNextGrids.RemoveAll(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
+        public int RemoveNextGrid(string Name) => _next.RemoveAll(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
         /// 组件绑定工具栏

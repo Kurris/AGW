@@ -16,7 +16,7 @@ namespace AGW.Base.Components
         {
             this.Nodes.Add(new TreeNode()
             {
-                Name = "All",
+                Name = "all",
                 Text = "全部"
             });
             this.Width = 300;

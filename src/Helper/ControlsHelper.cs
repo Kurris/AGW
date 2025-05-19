@@ -1,13 +1,14 @@
-﻿using AGW.Base.Components;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using AGW.Base.Components;
+using Entities;
+using Entities.Model;
 
 namespace AGW.Base.Helper
 {
@@ -22,14 +23,15 @@ namespace AGW.Base.Helper
         /// <param name="Title">标题</param>
         /// <param name="Name">Name</param>
         /// <returns>TabPage</returns>
-        public static TabPage NewPage(string Title, string Name)
+        public static TabPage NewPage(string name, string title)
         {
             TabPage page = new TabPage()
             {
-                Text = Title,
-                Name = Name,
+                Text = title,
+                Name = name,
                 BackColor = Color.White
             };
+
             return page;
         }
 
@@ -38,19 +40,16 @@ namespace AGW.Base.Helper
         /// </summary>
         /// <param name="Name">工具栏Name,一般是容器数据源</param>
         /// <returns>ComponentToolbar</returns>
-        internal static ComponentToolbar NewToolStrip(string Name)
+        internal static ComponentToolbar NewToolStrip(string name)
         {
             var toolstrip = new ComponentToolbar();
 
-            DataTable ButtonData = DBHelper.GetDataTable($@"
-select *
-from t_toolstrip a WITH(NOLOCK)
-LEFT JOIN T_Button b on a.fToolName = b.fBtnName
-where a.fInterFaceName = '{Name}'");
+            var buttons = DBHelper.Db.Queryable<ToolStripEntity>().LeftJoin<ButtonEntity>((a, b) => a.Name == b.Name)
+                   .Where(a => a.ProgramNo == name)
+                   .Select((a, b) => b)
+                   .ToList();
 
-            if (ButtonData == null || ButtonData.Rows.Count == 0) return toolstrip;
-
-            foreach (DataRow dr in ButtonData.Rows)
+            foreach (var dr in buttons)
             {
                 AddButton(toolstrip, dr);
             }
@@ -62,28 +61,28 @@ where a.fInterFaceName = '{Name}'");
         /// </summary>
         /// <param name="toolstrip"></param>
         /// <param name="dr"></param>
-        private static void AddButton(ComponentToolbar toolstrip, DataRow dr)
+        private static void AddButton(ComponentToolbar toolstrip, ButtonEntity dr)
         {
 
             var button = new ToolStripButton()
             {
-                Name = dr["fbtnname"] + "",
-                Text = dr["fbtntext"] + "",
+                Name = dr.Name,
+                Text = dr.Title,
                 DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
             };
-            if ("custom".Equals(dr["fbtnname"] + "", StringComparison.OrdinalIgnoreCase)
-                && !string.IsNullOrEmpty(dr["fCustomName"] + ""))
+            if ("custom".Equals(dr.Name, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrEmpty(dr.Name))
             {
-                button.Text = dr["fCustomName"] + "";
-                button.Name = dr["fAssamblyName"] + "";
+                button.Text = dr.Name;
+                button.Name = dr.Name;
             }
             toolstrip.Items.Add(button);
 
-            if (!string.IsNullOrEmpty(dr["fbtnimage"] + ""))
+            if (!string.IsNullOrEmpty(dr.Image))
             {
-                if (File.Exists(dr["fbtnimage"] + ""))
+                if (File.Exists(dr.Image))
                 {
-                    Image image = Image.FromFile(dr["fbtnimage"] + "");
+                    Image image = Image.FromFile(dr.Image);
                     button.Image = image;
                 }
             }
@@ -92,16 +91,24 @@ where a.fInterFaceName = '{Name}'");
         /// <summary>
         /// 创建一个数据容器
         /// </summary>
-        /// <param name="Data"></param>
-        /// <param name="DataColumnInfos"></param>
+        /// <param name="dt"></param>
+        /// <param name="columns"></param>
         /// <returns></returns>
-        internal static ComponentDataGrid NewDataGrid(DataTable Data, DataTable DataColumnInfos)
+        internal static ComponentDataGrid NewDataGrid(string name, DataTable dt, List<ProgramColumnEntity> columns)
         {
-            var grid = new ComponentDataGrid();
-            grid.AutoGenerateColumns = false;
-            grid.DataSource = Data;
+            var grid = new ComponentDataGrid
+            {
+                AutoGenerateColumns = false,
+                DataSource = dt,
+                Name = name
+            };
 
-            InitStyle(grid, DataColumnInfos);
+            InitStyle(grid, columns);
+
+            grid.ProgramColumns = columns.Select(x => new ProgramColumn
+            {
+                Name = x.Name
+            }).ToList();
 
             return grid;
         }
@@ -110,7 +117,7 @@ where a.fInterFaceName = '{Name}'");
         /// 初始化CompontentDataGrid样式
         /// </summary>
         /// <param name="MainDgv"></param>
-        public static void InitStyle(ComponentDataGrid dgv, DataTable ColData)
+        private static void InitStyle(ComponentDataGrid dgv, List<ProgramColumnEntity> columns)
         {
             dgv.ReadOnly = true;
             dgv.BackgroundColor = Color.White;
@@ -128,7 +135,6 @@ where a.fInterFaceName = '{Name}'");
             dgv.AdvancedColumnHeadersBorderStyle.Right = DataGridViewAdvancedCellBorderStyle.None;
 
             dgv.TopLeftHeaderCell.Value = "行号";
-
 
             DataTable dt = dgv.DataSource as DataTable;
             foreach (DataColumn dc in dt.Columns)
@@ -152,13 +158,13 @@ where a.fInterFaceName = '{Name}'");
 
                 var colinfo = new ColumnInfo()
                 {
-                    ReadOnly = GetValue<bool>(ColData, "freadonly", dc.ColumnName),
-                    Visible = GetValue<bool>(ColData, "fvisiable", dc.ColumnName),
+                    ReadOnly = GetValue<bool>(columns, nameof(ProgramColumnEntity.IsReadonly), dc.ColumnName),
+                    Visible = GetValue<bool>(columns, nameof(ProgramColumnEntity.IsVisible), dc.ColumnName),
                     ColumnName = dc.ColumnName,
-                    DefaultValue = GetValue<string>(ColData, "fdefaultvalue", dc.ColumnName),
+                    DefaultValue = GetValue<string>(columns, nameof(ProgramColumnEntity.DefaultValue), dc.ColumnName),
                     Translation = GlobalInvariant.GetLanguageByKey(dc.ColumnName),
                     DataPropertyName = dc.ColumnName,
-                    Num = GetValue<int>(ColData, "fnum", dc.ColumnName),
+                    Num = GetValue<int>(columns, nameof(ProgramColumnEntity.Sequence), dc.ColumnName),
                 };
 
 
@@ -174,12 +180,12 @@ where a.fInterFaceName = '{Name}'");
                 dgv.Columns.Add(col);
             }
 
-            T GetValue<T>(DataTable Data, string MatchColumn, string ColumnName)
+            T GetValue<T>(List<ProgramColumnEntity> Data, string MatchColumn, string ColumnName)
             {
-                var row = Data.Select($"fcolname='{ColumnName}'").FirstOrDefault();
+                var row = Data.Where(x => x.Name == ColumnName).FirstOrDefault();
                 if (row != null)
                 {
-                    return (T)row[MatchColumn];
+                    return (T)row.GetType().GetProperties().FirstOrDefault(x => x.Name == MatchColumn).GetValue(row);
                 }
                 return default(T);
             }
@@ -191,13 +197,13 @@ where a.fInterFaceName = '{Name}'");
         /// <param name="Tree"></param>
         /// <param name="ColumnInfoData"></param>
         /// <param name="GridData"></param>
-        public static void CreateTree(TreeView Tree, DataRow[] ColumnInfoData, DataTable GridData)
+        public static void CreateTree(TreeView Tree, List<ProgramColumnEntity> ColumnInfoData, DataTable GridData)
         {
             var tor = ColumnInfoData.GetEnumerator();
 
             if (tor.MoveNext())
             {
-                string sColumnName = (tor.Current as DataRow)["fcolname"] + "";
+                string sColumnName = tor.Current.Name;
 
                 var distinctData = GridData.AsEnumerable()
                .Select(x => x[sColumnName].ToString())
@@ -215,7 +221,7 @@ where a.fInterFaceName = '{Name}'");
 
                 if (tor.MoveNext())
                 {
-                    sColumnName = (tor.Current as DataRow)["fcolname"] + "";
+                    sColumnName = tor.Current.Name;
 
                     foreach (TreeNode tn in Tree.Nodes)
                     {
@@ -223,7 +229,7 @@ where a.fInterFaceName = '{Name}'");
 
                         RecusionTree(tor, tn, GridData, sColumnName);
 
-                        tor.Reset();
+                        //tor.Reset();
                         tor.MoveNext();
                     }
                 }

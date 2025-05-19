@@ -22,7 +22,7 @@ namespace AGW.Main
 
 
 #if DEBUG
-            Application.Run(new frmMain());
+            Application.Run(new FormMain());
 #else
 
             var login = new frmLogin();
@@ -49,7 +49,7 @@ namespace AGW.Main
 
         private static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
-
+            MessageBox.Show(e.Exception.Message);
         }
     }
 }

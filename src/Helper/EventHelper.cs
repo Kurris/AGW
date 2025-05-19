@@ -1,4 +1,5 @@
 ﻿using AGW.Base.Components;
+using Entities;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -142,9 +143,16 @@ namespace AGW.Base.Helper
         /// <param name="e">data args</param>
         private void CommonCellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e != null && e.RowIndex < 0) return;
-
-            ComponentDataGrid dataGrid = sender as ComponentDataGrid;
+            var dataGrid = sender as ComponentDataGrid;
+            var childrenGrid = dataGrid.GetChildrenGrids();
+            if (e != null && e.RowIndex < 0)
+            {
+                foreach (var item in childrenGrid)
+                {
+                    (item.DataSource  as DataTable).Rows.Clear();
+                }
+                return;
+            }
 
             if (e == null)
             {
@@ -153,7 +161,6 @@ namespace AGW.Base.Helper
 
             if (dataGrid == null) throw new ArgumentNullException("当前容器为空");
 
-            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenGrid();
 
 
             var rows = dataGrid.SelectedRows;
@@ -161,7 +168,7 @@ namespace AGW.Base.Helper
             {
                 foreach (ComponentDataGrid grid in childrenGrid)
                 {
-                    DataTable dt = grid.DataSource as DataTable;
+                    var dt = grid.DataSource as DataTable;
 
                     if (dt == null) continue;
 
@@ -200,7 +207,7 @@ namespace AGW.Base.Helper
 
                 string tablename = (grid.DataSource as DataTable).TableName;
 
-                DataTable dt = DBHelper.GetDataTable(sql);
+                DataTable dt = DBHelper.Db.Ado.GetDataTable(sql);
                 dt.Namespace = sql;
                 dt.TableName = tablename;
                 grid.DataSource = dt;
@@ -235,7 +242,7 @@ namespace AGW.Base.Helper
 
                 if (e.ClickedItem.Text.Equals("查看当前数据源"))
                 {
-                    new frmDataSource(grid.Name, (getDgv.DataSource as DataTable).Namespace).ShowDialog();
+                    new FormDataSource(grid.Name, (getDgv.DataSource as DataTable).Namespace).ShowDialog();
                 }
                 else if (e.ClickedItem.Text.Equals("复制"))
                 {
@@ -270,7 +277,7 @@ namespace AGW.Base.Helper
         /// <param name="dataGrid">Child container</param>
         private void ClearRows(ComponentDataGrid dataGrid)
         {
-            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenGrid();
+            List<ComponentDataGrid> childrenGrid = dataGrid.GetChildrenGrids();
 
             foreach (ComponentDataGrid grid in childrenGrid)
             {
@@ -379,7 +386,7 @@ namespace AGW.Base.Helper
                 MessageBox.Show("当前没有可以编辑的数据!", "title", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            frmModule form = new frmModule(grid, true);
+            FormModule form = new FormModule(grid, true);
             form.atRefresh = RefreshClick;
             form.InitializeData();
             form.ShowDialog();
@@ -417,10 +424,8 @@ namespace AGW.Base.Helper
                 {
                     var rowDelete = row.DataBoundItem as DataRowView;
                     rowDelete.Delete();
-                    lisStr.Add($@"delete from {(grid.DataSource as DataTable).TableName} where fid ={(int)rowDelete["fid"]}");
+                    DBHelper.Db.Ado.ExecuteCommand($@"delete from {(grid.DataSource as DataTable).TableName} where id ={(int)rowDelete["Id"]}");
                 }
-
-                DBHelper.RunSql(lisStr, CommandType.Text, null);
 
                 //删除后自动点击
                 if (grid.RowCount == iIndex && grid.RowCount != 0)
@@ -443,7 +448,7 @@ namespace AGW.Base.Helper
             ComponentToolbar tool = button.GetCurrentParent() as ComponentToolbar;
             var grid = tool.DataGrid;
 
-            frmModule form = new frmModule(grid);
+            FormModule form = new FormModule(grid);
             form.atRefresh = RefreshClick;
             form.InitializeData();
             form.ShowDialog();
@@ -470,7 +475,8 @@ namespace AGW.Base.Helper
 
             string sql = (tool.DataGrid.DataSource as DataTable).Namespace;
             string tablename = (tool.DataGrid.DataSource as DataTable).TableName;
-            DataTable dt = DBHelper.GetDataTable(sql);
+
+            DataTable dt = DBHelper.Db.Ado.GetDataTable(sql);
             dt.Namespace = sql;
             dt.TableName = tablename;
             tool.DataGrid.DataSource = dt;
@@ -478,8 +484,8 @@ namespace AGW.Base.Helper
             if (dt != null && dt.Rows.Count > 0)
             {
                 tool.DataGrid.Rows[0].Cells[0].Selected = true;
-                CommonCellClick(tool.DataGrid, new DataGridViewCellEventArgs(0, 0));
             }
+            CommonCellClick(tool.DataGrid, dt.Rows.Count > 0 ? new DataGridViewCellEventArgs(0, 0) : new DataGridViewCellEventArgs(-1, -1));
         }
     }
 }

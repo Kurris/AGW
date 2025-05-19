@@ -1,6 +1,6 @@
 ﻿namespace AGW.Main
 {
-    partial class frmSplash
+    partial class FormSplash
     {
         /// <summary>
         /// Required designer variable.
